@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_taken"
+            android:icon="@drawable/ic_taken"
+            android:title="@string/taken" />
+
+        <item
+            android:id="@+id/nav_order"
+            android:icon="@drawable/ic_create"
+            android:title="@string/order" />
+
+        <item
+            android:id="@+id/nav_sales"
+            android:icon="@drawable/ic_sales"
+            android:title="@string/sales" />
+
+        <item
+            android:id="@+id/nav_returns"
+            android:icon="@drawable/ic_undo"
+            android:title="@string/returns" />
+    </group>
+
+    <item android:title="@string/resources">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_customer"
+                    android:icon="@drawable/ic_person"
+                    android:title="@string/customer" />
+                <item
+                    android:id="@+id/nav_sales_man"
+                    android:icon="@drawable/ic_group"
+                    android:title="@string/sales_man" />
+                <item
+                    android:id="@+id/nav_setup"
+                    android:icon="@drawable/ic_setup"
+                    android:title="@string/items_set_up" />
+            </group>
+        </menu>
+    </item>
+
+</menu>
