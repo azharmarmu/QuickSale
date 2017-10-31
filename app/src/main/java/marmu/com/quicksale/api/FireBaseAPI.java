@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
+import marmu.com.quicksale.listeners.CustomerListener;
 import marmu.com.quicksale.utils.Constants;
 
 /**
@@ -110,6 +111,12 @@ public class FireBaseAPI {
         });
     }
 
+    private static CustomerListener customerListener;
+
+    public void setCustomerListener(CustomerListener customerListener) {
+        FireBaseAPI.customerListener = customerListener;
+    }
+
     public static void getCustomer() {
         customerDBRef.keepSynced(true);
         customerDBRef.addValueEventListener(new ValueEventListener() {
@@ -118,6 +125,7 @@ public class FireBaseAPI {
                 try {
                     if (dataSnapshot.getValue() != null) {
                         customer = (HashMap<String, Object>) dataSnapshot.getValue();
+                        customerListener.getCustomer(customer);
                     } else {
                         customer.clear();
                     }

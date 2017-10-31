@@ -1,106 +1,92 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="@dimen/activity_horizontal_margin">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-    <LinearLayout
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/til_customer_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/et_customer_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Customer Name"
+            android:inputType="textAutoComplete"
+            android:padding="8dp"
+            android:textAllCaps="true"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/til_customer_gst"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_marginTop="16dp">
 
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/til_customer_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <EditText
-                android:id="@+id/et_customer_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:hint="Customer Name"
-                android:inputType="textAutoComplete"
-                android:padding="8dp"
-                android:textAllCaps="true"
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
-        </android.support.design.widget.TextInputLayout>
-
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/til_customer_phone"
+        <EditText
+            android:id="@+id/et_customer_gst"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
-
-            <EditText
-                android:id="@+id/et_customer_phone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentStart="true"
-                android:ems="10"
-                android:hint="Phone"
-                android:inputType="phone"
-                android:maxLength="10"
-                android:minEms="10"
-                android:padding="8dp"
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
-        </android.support.design.widget.TextInputLayout>
-
-        <android.support.design.widget.TextInputLayout
-            android:id="@+id/til_customer_gst"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
-
-            <EditText
-                android:id="@+id/et_customer_gst"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentStart="true"
-                android:ems="10"
-                android:hint="GST-IN"
-                android:inputType="text"
-                android:maxLength="10"
-                android:minEms="10"
-                android:padding="8dp"
-                android:textAllCaps="true"
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
-        </android.support.design.widget.TextInputLayout>
-
-
-        <TextView
-            android:id="@+id/btn_add_customer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:layout_marginBottom="@dimen/activity_horizontal_margin"
-            android:background="@drawable/box_white_thick_border_corner_ripple"
-            android:gravity="center"
-            android:padding="16dp"
-            android:text="Add"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:ems="10"
+            android:hint="GST-IN"
+            android:inputType="textCapCharacters"
+            android:maxLength="10"
+            android:minEms="10"
+            android:padding="8dp"
+            android:textAllCaps="true"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
+    </android.support.design.widget.TextInputLayout>
 
-        <View
-            android:id="@+id/view"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/colorAccent" />
+    <EditText
+        android:textAllCaps="true"
+        android:id="@+id/et_customer_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/box_white"
+        android:gravity="top"
+        android:hint="@string/address"
+        android:inputType="textMultiLine"
+        android:lines="5"
+        android:padding="8dp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:text="Customer"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
-            android:textColor="@color/colorLightBlack" />
+    <TextView
+        android:id="@+id/btn_add_customer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="@dimen/activity_horizontal_margin"
+        android:background="@drawable/box_white_thick_border_corner_ripple"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="Add"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv_customer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/activity_horizontal_margin" />
-    </LinearLayout>
-</ScrollView>
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/colorAccent" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="Customer"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+        android:textColor="@color/colorLightBlack" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_customer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+</LinearLayout>

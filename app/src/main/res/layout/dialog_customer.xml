@@ -12,6 +12,7 @@
         android:hint="Name"
         android:inputType="textAutoComplete"
         android:padding="8dp"
+        android:textAllCaps="true"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
 
@@ -36,6 +37,7 @@
         android:hint="GST-IN"
         android:inputType="text"
         android:padding="8dp"
+        android:textAllCaps="true"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
 

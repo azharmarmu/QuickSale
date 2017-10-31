@@ -28,6 +28,7 @@ import java.util.HashMap;
 
 import marmu.com.quicksale.R;
 import marmu.com.quicksale.api.FireBaseAPI;
+import marmu.com.quicksale.listeners.CustomerListener;
 import marmu.com.quicksale.modules.Customer;
 import marmu.com.quicksale.modules.Man;
 import marmu.com.quicksale.modules.Order;
@@ -37,7 +38,7 @@ import marmu.com.quicksale.modules.Setup;
 import marmu.com.quicksale.modules.Taken;
 
 public class LandingActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, CustomerListener {
 
     View taken, order, sales, returns, customer, salesMan, setup;
     public static int whereIam = 0;
@@ -49,6 +50,7 @@ public class LandingActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landing);
+        new FireBaseAPI().setCustomerListener(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setSupportActionBar(toolbar);
@@ -231,7 +233,7 @@ public class LandingActivity extends AppCompatActivity
                 break;
             case 4:
                 customer.setVisibility(View.VISIBLE);
-                Customer.evaluate(this, customer);
+                Customer.evaluate(LandingActivity.this, customer);
                 break;
             case 5:
                 salesMan.setVisibility(View.VISIBLE);
@@ -287,5 +289,10 @@ public class LandingActivity extends AppCompatActivity
                 }
             }, 2000);
         }
+    }
+
+    @Override
+    public void getCustomer(HashMap<String, Object> customer) {
+        switchScreen();
     }
 }
