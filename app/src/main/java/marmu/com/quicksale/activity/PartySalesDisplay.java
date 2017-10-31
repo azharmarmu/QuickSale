@@ -1,9 +1,9 @@
 package marmu.com.quicksale.activity;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.TableLayout;
@@ -45,28 +45,28 @@ public class PartySalesDisplay extends AppCompatActivity {
                 partyGST = "NIL";
             }
 
-            TextView tvPartyName = (TextView) findViewById(R.id.sales_man_list);
+            TextView tvPartyName = findViewById(R.id.sales_man_list);
             tvPartyName.setText(partyName);
 
-            TextView tvPartyBillDate = (TextView) findViewById(R.id.party_bill_date);
+            TextView tvPartyBillDate = findViewById(R.id.party_bill_date);
             tvPartyBillDate.append("Date: " + partyBillDate);
 
-            TextView tvPartyBillNo = (TextView) findViewById(R.id.party_bill_no);
+            TextView tvPartyBillNo = findViewById(R.id.party_bill_no);
             tvPartyBillNo.append("Bill No: " + partyBillNo);
 
-            TextView tvPartyGST = (TextView) findViewById(R.id.gst);
+            TextView tvPartyGST = findViewById(R.id.gst);
             tvPartyGST.append("GSTIN: " + partyGST);
 
             populateTable(getApplicationContext());
 
-            TextView total = (TextView) findViewById(R.id.tv_sales_total);
+            TextView total = findViewById(R.id.tv_sales_total);
             total.setText(String.valueOf(partiesNetTotal));
 
-            TextView amountReceived = (TextView) findViewById(R.id.tv_amount_received);
+            TextView amountReceived = findViewById(R.id.tv_amount_received);
             amountReceived.setText("");
             amountReceived.append("Amount received: " + String.valueOf(cashReceived));
 
-            TextView balanceAmount = (TextView) findViewById(R.id.tv_balance_amount);
+            TextView balanceAmount = findViewById(R.id.tv_balance_amount);
             balanceAmount.setText("");
             balanceAmount.append("Balance Amount: " + (partiesNetTotal - cashReceived));
 
@@ -74,7 +74,7 @@ public class PartySalesDisplay extends AppCompatActivity {
     }
 
     private void populateTable(Context context) {
-        TableLayout tableLayout = (TableLayout) findViewById(R.id.table_layout);
+        TableLayout tableLayout = findViewById(R.id.table_layout);
         tableLayout.removeAllViews();
         for (final String prodKey : partiesItems.keySet()) {
             /* Create a TableRow dynamically */

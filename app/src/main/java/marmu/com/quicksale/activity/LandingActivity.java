@@ -28,18 +28,20 @@ import java.util.HashMap;
 
 import marmu.com.quicksale.R;
 import marmu.com.quicksale.api.FireBaseAPI;
+import marmu.com.quicksale.listeners.CustomerListener;
 import marmu.com.quicksale.modules.Customer;
 import marmu.com.quicksale.modules.Man;
 import marmu.com.quicksale.modules.Order;
 import marmu.com.quicksale.modules.Return;
 import marmu.com.quicksale.modules.Sales;
+import marmu.com.quicksale.modules.SalesStore;
 import marmu.com.quicksale.modules.Setup;
 import marmu.com.quicksale.modules.Taken;
 
 public class LandingActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, CustomerListener {
 
-    View taken, order, sales, returns, customer, salesMan, setup;
+    View taken, order, sales, salesStore, returns, customer, salesMan, setup;
     public static int whereIam = 0;
 
     TextView companyName, companyPhone, companyMail;
@@ -49,6 +51,7 @@ public class LandingActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landing);
+        new FireBaseAPI().setCustomerListener(this);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setSupportActionBar(toolbar);
@@ -59,6 +62,7 @@ public class LandingActivity extends AppCompatActivity
         taken = findViewById(R.id.taken_holder);
         order = findViewById(R.id.order_holder);
         sales = findViewById(R.id.sales_holder);
+        salesStore = findViewById(R.id.sales_store_holder);
         returns = findViewById(R.id.return_holder);
         customer = findViewById(R.id.customer_holder);
         salesMan = findViewById(R.id.sales_man_holder);
@@ -173,7 +177,7 @@ public class LandingActivity extends AppCompatActivity
             whereIam = 1;
         } else if (id == R.id.nav_sales) {
             if (getSupportActionBar() != null) {
-                getSupportActionBar().setTitle("Sales");
+                getSupportActionBar().setTitle("Sales - deprecated");
             }
             whereIam = 2;
         } else if (id == R.id.nav_returns) {
@@ -196,6 +200,11 @@ public class LandingActivity extends AppCompatActivity
                 getSupportActionBar().setTitle("Set-up");
             }
             whereIam = 6;
+        } else if (id == R.id.nav_sales_store) {
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setTitle("Sales (store)");
+            }
+            whereIam = 7;
         }
         switchScreen();
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -207,6 +216,7 @@ public class LandingActivity extends AppCompatActivity
         taken.setVisibility(View.GONE);
         order.setVisibility(View.GONE);
         sales.setVisibility(View.GONE);
+        salesStore.setVisibility(View.GONE);
         returns.setVisibility(View.GONE);
         customer.setVisibility(View.GONE);
         salesMan.setVisibility(View.GONE);
@@ -231,7 +241,7 @@ public class LandingActivity extends AppCompatActivity
                 break;
             case 4:
                 customer.setVisibility(View.VISIBLE);
-                Customer.evaluate(this, customer);
+                Customer.evaluate(LandingActivity.this, customer);
                 break;
             case 5:
                 salesMan.setVisibility(View.VISIBLE);
@@ -240,6 +250,10 @@ public class LandingActivity extends AppCompatActivity
             case 6:
                 setup.setVisibility(View.VISIBLE);
                 Setup.evaluate(this, setup);
+                break;
+            case 7:
+                salesStore.setVisibility(View.VISIBLE);
+                SalesStore.evaluate(this, salesStore);
                 break;
         }
     }
@@ -287,5 +301,10 @@ public class LandingActivity extends AppCompatActivity
                 }
             }, 2000);
         }
+    }
+
+    @Override
+    public void getCustomer(HashMap<String, Object> customer) {
+        switchScreen();
     }
 }

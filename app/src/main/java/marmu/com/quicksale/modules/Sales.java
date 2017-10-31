@@ -5,13 +5,13 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
@@ -32,6 +32,8 @@ import marmu.com.quicksale.R;
 import marmu.com.quicksale.activity.PartySalesDisplay;
 import marmu.com.quicksale.api.FireBaseAPI;
 import marmu.com.quicksale.utils.Constants;
+import marmu.com.quicksale.utils.GenerateSalesReport;
+import marmu.com.quicksale.utils.Permissions;
 
 
 /**
@@ -45,7 +47,6 @@ public class Sales implements Serializable {
     private static List<String> routeWise = new ArrayList<>();
     private static List<String> routeList = new ArrayList<>();
 
-
     public static void evaluate(Context context, View itemView) {
         routeWise.clear();
         routeWise.add(Constants.ALL);
@@ -55,7 +56,7 @@ public class Sales implements Serializable {
         salesWiseReport.add(Constants.PRODUCT);
         clearTable(context, itemView);
         try {
-            final EditText datePicker = itemView.findViewById(R.id.et_date_picker);
+            final TextView datePicker = itemView.findViewById(R.id.et_date_picker);
 
             Date currentDate = new Date();
             Calendar calendar = new GregorianCalendar();
@@ -73,6 +74,33 @@ public class Sales implements Serializable {
             e.printStackTrace();
         }
         datePicker(context, itemView);
+        generateReport(context, itemView);
+    }
+
+    private static void generateReport(final Context context, final View itemView) {
+        TextView generateReport = itemView.findViewById(R.id.tv_generate_report);
+        generateReport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (Permissions.EXTERNAL_STORAGE(context)) {
+                    if (partyCustomerName.size() > 0) {
+                        final Spinner spinner1 = itemView.findViewById(R.id.spinner1);
+                        final Spinner spinner2 = itemView.findViewById(R.id.spinner2);
+                        final TextView datePicker = itemView.findViewById(R.id.et_date_picker);
+                        Log.e("generateReport", spinner2.toString());
+                        new GenerateSalesReport().generateSalesReport(
+                                context,
+                                spinner2.getSelectedItem() != null ? spinner2.getSelectedItem().toString() : spinner1.getSelectedItem().toString(),
+                                datePicker.getText().toString(),
+                                cashAmount, totalBill,
+                                partyCustomerName, partiesNetTotal,
+                                partiesItems, partiesItemsRate,
+                                partiesItemsTotal, partiesBillNo,
+                                partiesBillDate, partiesGST, partiesAmountReceived);
+                    }
+                }
+            }
+        });
     }
 
     private static void clearTable(Context context, View itemView) {
@@ -107,15 +135,24 @@ public class Sales implements Serializable {
         }
     }
 
-    private static void getRouteList() {
+    private static void getRouteList(Date pickedDate) {
         final HashMap<String, Object> partiesBillDate = new HashMap<>();
         HashMap<String, Object> bill = FireBaseAPI.billing;
         for (String key : bill.keySet()) {
             HashMap<String, Object> party = (HashMap<String, Object>) bill.get(key);
             for (String partyKey : party.keySet()) {
                 HashMap<String, Object> partyName = (HashMap<String, Object>) party.get(partyKey);
-                if (!routeList.contains(partyName.get("sold_route").toString()))
-                    routeList.add(partyName.get("sold_route").toString());
+                if (!routeList.contains(partyName.get("sold_route").toString())) {
+                    try {
+                        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+                        Date soldDate = formatter.parse(partyName.get("sold_date").toString());
+                        if (pickedDate.compareTo(soldDate) == 0) {
+                            routeList.add(partyName.get("sold_route").toString());
+                        }
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }
@@ -127,14 +164,14 @@ public class Sales implements Serializable {
         spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                EditText datePicker = itemView.findViewById(R.id.et_date_picker);
+                TextView datePicker = itemView.findViewById(R.id.et_date_picker);
                 if (!datePicker.getText().toString().isEmpty()) {
                     clearTable(context, itemView);
                     try {
                         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
                         Date pickedDate = formatter.parse(datePicker.getText().toString());
                         if (spinner1.getSelectedItem().toString().equalsIgnoreCase(Constants.ROUTE)) {
-                            getRouteList();
+                            getRouteList(pickedDate);
                         } else {
                             routeList.clear();
                         }
@@ -165,7 +202,7 @@ public class Sales implements Serializable {
         spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                EditText datePicker = itemView.findViewById(R.id.et_date_picker);
+                TextView datePicker = itemView.findViewById(R.id.et_date_picker);
                 if (!datePicker.getText().toString().isEmpty()) {
                     clearTable(context, itemView);
                     try {
@@ -190,7 +227,7 @@ public class Sales implements Serializable {
         spinner3.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                EditText datePicker = itemView.findViewById(R.id.et_date_picker);
+                TextView datePicker = itemView.findViewById(R.id.et_date_picker);
                 if (!datePicker.getText().toString().isEmpty()) {
                     clearTable(context, itemView);
                     try {
@@ -216,10 +253,9 @@ public class Sales implements Serializable {
         spinner3.setAdapter(adapter3);
     }
 
-
     @SuppressLint("SimpleDateFormat")
     private static void datePicker(final Context context, final View itemView) {
-        final EditText datePicker = itemView.findViewById(R.id.et_date_picker);
+        final TextView datePicker = itemView.findViewById(R.id.et_date_picker);
 
         datePicker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -254,14 +290,9 @@ public class Sales implements Serializable {
                                         } else {
                                             datePicker.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year);
                                         }
+                                        datePicker.setError(null);
                                         datePicker.clearFocus();
-                                        Spinner spinner1 = itemView.findViewById(R.id.spinner1);
-                                        Spinner spinner2 = itemView.findViewById(R.id.spinner2);
-                                        Spinner spinner3 = itemView.findViewById(R.id.spinner3);
-                                        setup(context, itemView, pickedDate,
-                                                spinner1.getSelectedItem() != null ? spinner1.getSelectedItem().toString() : null,
-                                                spinner2.getSelectedItem() != null ? spinner2.getSelectedItem().toString() : null,
-                                                spinner3.getSelectedItem() != null ? spinner3.getSelectedItem().toString() : null);
+                                        setSpinner(context, itemView);
                                     } else {
                                         datePicker.setError("Choose Valid date");
                                     }
@@ -275,155 +306,42 @@ public class Sales implements Serializable {
         });
     }
 
+    private static int cashAmount = 0;
+    private static int totalBill = 0;
+
+    private static HashMap<String, Object> partyCustomerName = new HashMap<>();
+    private static HashMap<String, Object> partiesSalesMan = new HashMap<>();
+    private static HashMap<String, Object> partiesNetTotal = new HashMap<>();
+    private static HashMap<String, Object> partiesItems = new HashMap<>();
+    private static HashMap<String, Object> partiesItemsRate = new HashMap<>();
+    private static HashMap<String, Object> partiesItemsTotal = new HashMap<>();
+    private static HashMap<String, Object> partiesBillNo = new HashMap<>();
+    private static HashMap<String, Object> partiesBillDate = new HashMap<>();
+    private static HashMap<String, Object> partiesGST = new HashMap<>();
+    private static HashMap<String, Object> partiesAmountReceived = new HashMap<>();
+
     private static void populateParty(final Context context, View itemView, Date pickedDate) throws ParseException {
-        int cashAmount = 0;
-        int totalBill = 0;
-        final HashMap<String, Object> partyCustomerName = new HashMap<>();
-        final HashMap<String, Object> partiesSalesMan = new HashMap<>();
-        final HashMap<String, Object> partiesNetTotal = new HashMap<>();
-        final HashMap<String, Object> partiesItems = new HashMap<>();
-        final HashMap<String, Object> partiesItemsRate = new HashMap<>();
-        final HashMap<String, Object> partiesItemsTotal = new HashMap<>();
-        final HashMap<String, Object> partiesBillNo = new HashMap<>();
-        final HashMap<String, Object> partiesBillDate = new HashMap<>();
-        final HashMap<String, Object> partiesGST = new HashMap<>();
-        final HashMap<String, Object> partiesAmountReceived = new HashMap<>();
-        HashMap<String, Object> bill = FireBaseAPI.billing;
-        for (String key : bill.keySet()) {
-            HashMap<String, Object> party = (HashMap<String, Object>) bill.get(key);
-            for (String partyKey : party.keySet()) {
-                HashMap<String, Object> partyName = (HashMap<String, Object>) party.get(partyKey);
-                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-                Date soldDate = formatter.parse(partyName.get("sold_date").toString());
-                if (pickedDate.compareTo(soldDate) == 0) {
-                    if (partyName.containsKey("amount_received")) {
-                        cashAmount += Integer.parseInt(partyName.get("amount_received").toString());
-                    }
-                    if (partyName.containsKey("net_total")) {
-                        totalBill += Integer.parseInt(partyName.get("net_total").toString());
-                    }
-                    partyCustomerName.put(partyKey, partyName.get("customer_name"));
-                    partiesSalesMan.put(partyKey, partyName.get("sales_man_name"));
-                    partiesNetTotal.put(partyKey, partyName.get("net_total"));
-                    partiesItems.put(partyKey, partyName.get("sold_items"));
-                    partiesItemsRate.put(partyKey, partyName.get("sold_items_rate"));
-                    partiesItemsTotal.put(partyKey, partyName.get("sold_items_total"));
-                    partiesBillNo.put(partyKey, partyName.get("bill_no"));
-                    partiesBillDate.put(partyKey, partyName.get("sold_date"));
-                    if (partyName.containsKey("customer_gst")) {
-                        partiesGST.put(partyKey, partyName.get("customer_gst"));
-                    } else {
-                        partiesGST.put(partyKey, "NIL");
-                    }
-                    partiesAmountReceived.put(partyKey, partyName.get("amount_received") != null ? partyName.get("amount_received") : "0");
-                }
-            }
-        }
+        try {
+            cashAmount = 0;
+            totalBill = 0;
 
-        TextView tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
-        tvCashAmount.setText("");
-        tvCashAmount.append("Cash sale: " + cashAmount);
-
-        TextView tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
-        tvCreditAmount.setText("");
-        tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
-
-        if (partiesNetTotal.size() > 0) {
-            TableLayout tableLayout = itemView.findViewById(R.id.tl_party);
-            tableLayout.removeAllViews();
-            for (final String prodKey : partiesNetTotal.keySet()) {
-            /* Create a TableRow dynamically */
-                TableRow tr = new TableRow(context);
-                tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
-
-                tr.setLayoutParams(new TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.MATCH_PARENT));
-                tr.setPadding(16, 16, 16, 16);
-                tr.setWeightSum(3);
-
-            /*Params*/
-                TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT);
-
-                params.weight = 1.0f;
-
-
-            /* Product Name --> TextView */
-                TextView name = new TextView(context);
-                name.setLayoutParams(params);
-
-                name.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                name.setPadding(16, 16, 16, 16);
-                name.setText(partyCustomerName.get(prodKey).toString());
-                name.setGravity(Gravity.CENTER);
-                tr.addView(name);
-
-            /* Product SalesMan --> TextView */
-                TextView salesMan = new TextView(context);
-                salesMan.setLayoutParams(params);
-
-                salesMan.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                salesMan.setPadding(16, 16, 16, 16);
-                salesMan.setText(partiesSalesMan.get(prodKey).toString());
-                salesMan.setGravity(Gravity.CENTER);
-                tr.addView(salesMan);
-
-            /* Product Price --> TextView */
-                TextView rate = new TextView(context);
-                rate.setLayoutParams(params);
-
-                rate.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                rate.setPadding(16, 16, 16, 16);
-                rate.setText(partiesNetTotal.get(prodKey).toString());
-                rate.setGravity(Gravity.CENTER);
-                tr.addView(rate); // Adding textView to table-row.
-
-                tr.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent partySalesDisplay = new Intent(context, PartySalesDisplay.class);
-                        partySalesDisplay.putExtra("party_name", partyCustomerName.get(prodKey).toString());
-                        partySalesDisplay.putExtra("net_total", Integer.parseInt(partiesNetTotal.get(prodKey).toString()));
-                        partySalesDisplay.putExtra("items_qty", (HashMap<String, Object>) partiesItems.get(prodKey));
-                        partySalesDisplay.putExtra("items_rate", (HashMap<String, Object>) partiesItemsRate.get(prodKey));
-                        partySalesDisplay.putExtra("items_total", (HashMap<String, Object>) partiesItemsTotal.get(prodKey));
-                        partySalesDisplay.putExtra("party_bill_no", partiesBillNo.get(prodKey).toString());
-                        partySalesDisplay.putExtra("party_bill_date", partiesBillDate.get(prodKey).toString());
-                        if (partiesGST.size() > 0)
-                            partySalesDisplay.putExtra("party_gst", partiesGST.get(prodKey).toString());
-                        partySalesDisplay.putExtra("amount_received", Integer.parseInt(partiesAmountReceived.get(prodKey).toString()));
-                        context.startActivity(partySalesDisplay);
-                    }
-                });
-
-                // Add the TableRow to the TableLayout
-                tableLayout.addView(tr);
-            }
-        }
-    }
-
-    private static void populateParty(final Context context, View itemView, Date pickedDate, String route) throws ParseException {
-        int cashAmount = 0;
-        int totalBill = 0;
-        final HashMap<String, Object> partyCustomerName = new HashMap<>();
-        final HashMap<String, Object> partiesSalesMan = new HashMap<>();
-        final HashMap<String, Object> partiesNetTotal = new HashMap<>();
-        final HashMap<String, Object> partiesItems = new HashMap<>();
-        final HashMap<String, Object> partiesItemsRate = new HashMap<>();
-        final HashMap<String, Object> partiesItemsTotal = new HashMap<>();
-        final HashMap<String, Object> partiesBillNo = new HashMap<>();
-        final HashMap<String, Object> partiesBillDate = new HashMap<>();
-        final HashMap<String, Object> partiesGST = new HashMap<>();
-        final HashMap<String, Object> partiesAmountReceived = new HashMap<>();
-        HashMap<String, Object> bill = FireBaseAPI.billing;
-        for (String key : bill.keySet()) {
-            HashMap<String, Object> party = (HashMap<String, Object>) bill.get(key);
-            for (String partyKey : party.keySet()) {
-                HashMap<String, Object> partyName = (HashMap<String, Object>) party.get(partyKey);
-                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-                Date soldDate = formatter.parse(partyName.get("sold_date").toString());
-                if (route.equalsIgnoreCase(partyName.get("sold_route").toString()))
+            partyCustomerName = new HashMap<>();
+            partiesSalesMan = new HashMap<>();
+            partiesNetTotal = new HashMap<>();
+            partiesItems = new HashMap<>();
+            partiesItemsRate = new HashMap<>();
+            partiesItemsTotal = new HashMap<>();
+            partiesBillNo = new HashMap<>();
+            partiesBillDate = new HashMap<>();
+            partiesGST = new HashMap<>();
+            partiesAmountReceived = new HashMap<>();
+            HashMap<String, Object> bill = FireBaseAPI.billing;
+            for (String key : bill.keySet()) {
+                HashMap<String, Object> party = (HashMap<String, Object>) bill.get(key);
+                for (String partyKey : party.keySet()) {
+                    HashMap<String, Object> partyName = (HashMap<String, Object>) party.get(partyKey);
+                    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+                    Date soldDate = formatter.parse(partyName.get("sold_date").toString());
                     if (pickedDate.compareTo(soldDate) == 0) {
                         if (partyName.containsKey("amount_received")) {
                             cashAmount += Integer.parseInt(partyName.get("amount_received").toString());
@@ -438,218 +356,253 @@ public class Sales implements Serializable {
                         partiesItemsRate.put(partyKey, partyName.get("sold_items_rate"));
                         partiesItemsTotal.put(partyKey, partyName.get("sold_items_total"));
                         partiesBillNo.put(partyKey, partyName.get("bill_no"));
+                        partiesBillDate.put(partyKey, partyName.get("sold_date"));
                         if (partyName.containsKey("customer_gst")) {
                             partiesGST.put(partyKey, partyName.get("customer_gst"));
                         } else {
-                            partiesGST.put(partyKey, "NIL");
+                            partiesGST.put(partyKey, "UnRegistered");
                         }
-                        partiesBillDate.put(partyKey, partyName.get("sold_date"));
                         partiesAmountReceived.put(partyKey, partyName.get("amount_received") != null ? partyName.get("amount_received") : "0");
-                    }
-            }
-        }
-
-        TextView tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
-        tvCashAmount.setText("");
-        tvCashAmount.append("Cash sale: " + cashAmount);
-
-        TextView tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
-        tvCreditAmount.setText("");
-        tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
-
-        if (partiesNetTotal.size() > 0) {
-            TableLayout tableLayout = itemView.findViewById(R.id.tl_party);
-            tableLayout.removeAllViews();
-            for (final String prodKey : partiesNetTotal.keySet()) {
-            /* Create a TableRow dynamically */
-                TableRow tr = new TableRow(context);
-                tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
-
-                tr.setLayoutParams(new TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.MATCH_PARENT));
-                tr.setPadding(16, 16, 16, 16);
-                tr.setWeightSum(3);
-
-            /*Params*/
-                TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT);
-
-                params.weight = 1.0f;
-
-
-            /* Product Name --> TextView */
-                TextView name = new TextView(context);
-                name.setLayoutParams(params);
-
-                name.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                name.setPadding(16, 16, 16, 16);
-                name.setText(partyCustomerName.get(prodKey).toString());
-                name.setGravity(Gravity.CENTER);
-                tr.addView(name);
-
-            /* Product SalesMan --> TextView */
-                TextView salesMan = new TextView(context);
-                salesMan.setLayoutParams(params);
-
-                salesMan.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                salesMan.setPadding(16, 16, 16, 16);
-                salesMan.setText(partiesSalesMan.get(prodKey).toString());
-                salesMan.setGravity(Gravity.CENTER);
-                tr.addView(salesMan);
-
-            /* Product Price --> TextView */
-                TextView rate = new TextView(context);
-                rate.setLayoutParams(params);
-
-                rate.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                rate.setPadding(16, 16, 16, 16);
-                rate.setText(partiesNetTotal.get(prodKey).toString());
-                rate.setGravity(Gravity.CENTER);
-                tr.addView(rate); // Adding textView to table-row.
-
-                tr.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent partySalesDisplay = new Intent(context, PartySalesDisplay.class);
-                        partySalesDisplay.putExtra("party_name", partyCustomerName.get(prodKey).toString());
-                        partySalesDisplay.putExtra("net_total", Integer.parseInt(partiesNetTotal.get(prodKey).toString()));
-                        partySalesDisplay.putExtra("items_qty", (HashMap<String, Object>) partiesItems.get(prodKey));
-                        partySalesDisplay.putExtra("items_rate", (HashMap<String, Object>) partiesItemsRate.get(prodKey));
-                        partySalesDisplay.putExtra("items_total", (HashMap<String, Object>) partiesItemsTotal.get(prodKey));
-                        partySalesDisplay.putExtra("party_bill_no", partiesBillNo.get(prodKey).toString());
-                        if (partiesGST.size() > 0)
-                            partySalesDisplay.putExtra("party_gst", partiesGST.get(prodKey).toString());
-                        partySalesDisplay.putExtra("party_bill_date", partiesBillDate.get(prodKey).toString());
-                        partySalesDisplay.putExtra("amount_received", Integer.parseInt(partiesAmountReceived.get(prodKey).toString()));
-                        context.startActivity(partySalesDisplay);
-                    }
-                });
-
-                // Add the TableRow to the TableLayout
-                tableLayout.addView(tr);
-            }
-        }
-    }
-
-
-    private static void populateProduct(Context context, View itemView, Date pickedDate) throws ParseException {
-        int cashAmount = 0;
-        int totalBill = 0;
-        HashMap<String, Object> productsSold = new HashMap<>();
-        HashMap<String, Object> productsTotal = new HashMap<>();
-        HashMap<String, Object> bill = FireBaseAPI.billing;
-        for (String key : bill.keySet()) {
-            HashMap<String, Object> party = (HashMap<String, Object>) bill.get(key);
-            for (String partyKey : party.keySet()) {
-                HashMap<String, Object> partyName = (HashMap<String, Object>) party.get(partyKey);
-                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-                Date soldDate = formatter.parse(partyName.get("sold_date").toString());
-                if (pickedDate.compareTo(soldDate) == 0) {
-                    if (partyName.containsKey("amount_received")) {
-                        cashAmount += Integer.parseInt(partyName.get("amount_received").toString());
-                    }
-                    if (partyName.containsKey("net_total")) {
-                        totalBill += Integer.parseInt(partyName.get("net_total").toString());
-                    }
-                    HashMap<String, Object> itemsSold = (HashMap<String, Object>) partyName.get("sold_items");
-                    HashMap<String, Object> itemsTotal = (HashMap<String, Object>) partyName.get("sold_items_total");
-                    for (String item : itemsSold.keySet()) {
-                        int _Item = Integer.parseInt(itemsSold.get(item).toString());
-                        int _Total = Integer.parseInt(itemsTotal.get(item).toString());
-
-                        if (productsSold.containsKey(item)) {
-                            int sold = Integer.parseInt(productsSold.get(item).toString());
-                            int total = Integer.parseInt(productsTotal.get(item).toString());
-                            _Item = sold + _Item;
-                            _Total = total + _Total;
-                        }
-                        productsSold.put(item, _Item);
-                        productsTotal.put(item, _Total);
                     }
                 }
             }
-        }
 
-        TextView tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
-        tvCashAmount.setText("");
-        tvCashAmount.append("Cash sale: " + cashAmount);
+            TextView tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
+            tvCashAmount.setText("");
+            tvCashAmount.append("Cash sale: " + cashAmount);
 
-        TextView tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
-        tvCreditAmount.setText("");
-        tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
+            TextView tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
+            tvCreditAmount.setText("");
+            tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
 
-        if (productsSold.size() > 0) {
-            TableLayout tableLayout = itemView.findViewById(R.id.tl_product);
-            tableLayout.removeAllViews();
-            for (String prodKey : productsSold.keySet()) {
+            if (partiesNetTotal.size() > 0) {
+                TableLayout tableLayout = itemView.findViewById(R.id.tl_party);
+                tableLayout.removeAllViews();
+                for (final String prodKey : partiesNetTotal.keySet()) {
             /* Create a TableRow dynamically */
-                TableRow tr = new TableRow(context);
-                tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
+                    TableRow tr = new TableRow(context);
+                    tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
 
-                tr.setLayoutParams(new TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.MATCH_PARENT));
-                tr.setPadding(16, 16, 16, 16);
-                tr.setWeightSum(3);
+                    tr.setLayoutParams(new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.MATCH_PARENT));
+                    tr.setPadding(16, 16, 16, 16);
+                    tr.setWeightSum(3);
 
             /*Params*/
-                TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT);
+                    TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT);
 
-                params.weight = 1.0f;
-
-
-                /* Product Name --> TextView */
-                TextView name = new TextView(context);
-                name.setLayoutParams(params);
-
-                name.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                name.setPadding(16, 16, 16, 16);
-                name.setText(prodKey);
-                name.setGravity(Gravity.CENTER);
-                tr.addView(name);
-
-                /* Product Qty --> TextView */
-                TextView Qty = new TextView(context);
-                Qty.setLayoutParams(params);
-
-                Qty.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                Qty.setPadding(16, 16, 16, 16);
-                Qty.setText(productsSold.get(prodKey).toString());
-                Qty.setGravity(Gravity.CENTER);
-                tr.addView(Qty);
+                    params.weight = 1.0f;
 
 
-                /* Product Price --> TextView */
-                TextView rate = new TextView(context);
-                rate.setLayoutParams(params);
+            /* Product Name --> TextView */
+                    TextView name = new TextView(context);
+                    name.setLayoutParams(params);
 
-                rate.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                rate.setPadding(16, 16, 16, 16);
-                rate.setText(productsTotal.get(prodKey).toString());
-                rate.setGravity(Gravity.CENTER);
-                tr.addView(rate); // Adding textView to table-row.
+                    name.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    name.setPadding(16, 16, 16, 16);
+                    name.setText(partyCustomerName.get(prodKey).toString());
+                    name.setGravity(Gravity.CENTER);
+                    tr.addView(name);
 
-                // Add the TableRow to the TableLayout
-                tableLayout.addView(tr);
+            /* Product BillNo --> TextView */
+                    TextView salesMan = new TextView(context);
+                    salesMan.setLayoutParams(params);
+
+                    salesMan.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    salesMan.setPadding(16, 16, 16, 16);
+                    salesMan.setText(partiesBillNo.get(prodKey).toString());
+                    salesMan.setGravity(Gravity.CENTER);
+                    tr.addView(salesMan);
+
+            /* Product Price --> TextView */
+                    TextView rate = new TextView(context);
+                    rate.setLayoutParams(params);
+
+                    rate.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    rate.setPadding(16, 16, 16, 16);
+                    rate.setText(partiesNetTotal.get(prodKey).toString());
+                    rate.setGravity(Gravity.CENTER);
+                    tr.addView(rate); // Adding textView to table-row.
+
+                    tr.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent partySalesDisplay = new Intent(context, PartySalesDisplay.class);
+                            partySalesDisplay.putExtra("party_name", partyCustomerName.get(prodKey).toString());
+                            partySalesDisplay.putExtra("net_total", Integer.parseInt(partiesNetTotal.get(prodKey).toString()));
+                            partySalesDisplay.putExtra("items_qty", (HashMap<String, Object>) partiesItems.get(prodKey));
+                            partySalesDisplay.putExtra("items_rate", (HashMap<String, Object>) partiesItemsRate.get(prodKey));
+                            partySalesDisplay.putExtra("items_total", (HashMap<String, Object>) partiesItemsTotal.get(prodKey));
+                            partySalesDisplay.putExtra("party_bill_no", partiesBillNo.get(prodKey).toString());
+                            partySalesDisplay.putExtra("party_bill_date", partiesBillDate.get(prodKey).toString());
+                            if (partiesGST.size() > 0)
+                                partySalesDisplay.putExtra("party_gst", partiesGST.get(prodKey).toString());
+                            partySalesDisplay.putExtra("amount_received", Integer.parseInt(partiesAmountReceived.get(prodKey).toString()));
+                            context.startActivity(partySalesDisplay);
+                        }
+                    });
+
+                    // Add the TableRow to the TableLayout
+                    tableLayout.addView(tr);
+                }
             }
+        } catch (Exception e) {
+            Log.e("Error", e.getMessage());
         }
     }
 
-    private static void populateProduct(Context context, View itemView, Date pickedDate, String route) throws ParseException {
-        int cashAmount = 0;
-        int totalBill = 0;
-        HashMap<String, Object> productsSold = new HashMap<>();
-        HashMap<String, Object> productsTotal = new HashMap<>();
-        HashMap<String, Object> bill = FireBaseAPI.billing;
-        for (String key : bill.keySet()) {
-            HashMap<String, Object> party = (HashMap<String, Object>) bill.get(key);
-            for (String partyKey : party.keySet()) {
-                HashMap<String, Object> partyName = (HashMap<String, Object>) party.get(partyKey);
-                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-                Date soldDate = formatter.parse(partyName.get("sold_date").toString());
-                if (route.equalsIgnoreCase(partyName.get("sold_route").toString()))
+    private static void populateParty(final Context context, View itemView, Date pickedDate, String route) throws ParseException {
+        try {
+            cashAmount = 0;
+            totalBill = 0;
+
+            partyCustomerName = new HashMap<>();
+            partiesSalesMan = new HashMap<>();
+            partiesNetTotal = new HashMap<>();
+            partiesItems = new HashMap<>();
+            partiesItemsRate = new HashMap<>();
+            partiesItemsTotal = new HashMap<>();
+            partiesBillNo = new HashMap<>();
+            partiesBillDate = new HashMap<>();
+            partiesGST = new HashMap<>();
+            HashMap<String, Object> bill = FireBaseAPI.billing;
+            for (String key : bill.keySet()) {
+                HashMap<String, Object> party = (HashMap<String, Object>) bill.get(key);
+                for (String partyKey : party.keySet()) {
+                    HashMap<String, Object> partyName = (HashMap<String, Object>) party.get(partyKey);
+                    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+                    Date soldDate = formatter.parse(partyName.get("sold_date").toString());
+                    if (route.equalsIgnoreCase(partyName.get("sold_route").toString()))
+                        if (pickedDate.compareTo(soldDate) == 0) {
+                            if (partyName.containsKey("amount_received")) {
+                                cashAmount += Integer.parseInt(partyName.get("amount_received").toString());
+                            }
+                            if (partyName.containsKey("net_total")) {
+                                totalBill += Integer.parseInt(partyName.get("net_total").toString());
+                            }
+                            partyCustomerName.put(partyKey, partyName.get("customer_name"));
+                            partiesSalesMan.put(partyKey, partyName.get("sales_man_name"));
+                            partiesNetTotal.put(partyKey, partyName.get("net_total"));
+                            partiesItems.put(partyKey, partyName.get("sold_items"));
+                            partiesItemsRate.put(partyKey, partyName.get("sold_items_rate"));
+                            partiesItemsTotal.put(partyKey, partyName.get("sold_items_total"));
+                            partiesBillNo.put(partyKey, partyName.get("bill_no"));
+                            if (partyName.containsKey("customer_gst")) {
+                                partiesGST.put(partyKey, partyName.get("customer_gst"));
+                            } else {
+                                partiesGST.put(partyKey, "UnRegistered");
+                            }
+                            partiesBillDate.put(partyKey, partyName.get("sold_date"));
+                            partiesAmountReceived.put(partyKey, partyName.get("amount_received") != null ? partyName.get("amount_received") : "0");
+                        }
+                }
+            }
+
+            TextView tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
+            tvCashAmount.setText("");
+            tvCashAmount.append("Cash sale: " + cashAmount);
+
+            TextView tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
+            tvCreditAmount.setText("");
+            tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
+
+            if (partiesNetTotal.size() > 0) {
+                TableLayout tableLayout = itemView.findViewById(R.id.tl_party);
+                tableLayout.removeAllViews();
+                for (final String prodKey : partiesNetTotal.keySet()) {
+            /* Create a TableRow dynamically */
+                    TableRow tr = new TableRow(context);
+                    tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
+
+                    tr.setLayoutParams(new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.MATCH_PARENT));
+                    tr.setPadding(16, 16, 16, 16);
+                    tr.setWeightSum(3);
+
+            /*Params*/
+                    TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT);
+
+                    params.weight = 1.0f;
+
+
+            /* Product Name --> TextView */
+                    TextView name = new TextView(context);
+                    name.setLayoutParams(params);
+
+                    name.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    name.setPadding(16, 16, 16, 16);
+                    name.setText(partyCustomerName.get(prodKey).toString());
+                    name.setGravity(Gravity.CENTER);
+                    tr.addView(name);
+
+            /* Product BillNo --> TextView */
+                    TextView salesMan = new TextView(context);
+                    salesMan.setLayoutParams(params);
+
+                    salesMan.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    salesMan.setPadding(16, 16, 16, 16);
+                    salesMan.setText(partiesBillNo.get(prodKey).toString());
+                    salesMan.setGravity(Gravity.CENTER);
+                    tr.addView(salesMan);
+
+            /* Product Price --> TextView */
+                    TextView rate = new TextView(context);
+                    rate.setLayoutParams(params);
+
+                    rate.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    rate.setPadding(16, 16, 16, 16);
+                    rate.setText(partiesNetTotal.get(prodKey).toString());
+                    rate.setGravity(Gravity.CENTER);
+                    tr.addView(rate); // Adding textView to table-row.
+
+                    tr.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent partySalesDisplay = new Intent(context, PartySalesDisplay.class);
+                            partySalesDisplay.putExtra("party_name", partyCustomerName.get(prodKey).toString());
+                            partySalesDisplay.putExtra("net_total", Integer.parseInt(partiesNetTotal.get(prodKey).toString()));
+                            partySalesDisplay.putExtra("items_qty", (HashMap<String, Object>) partiesItems.get(prodKey));
+                            partySalesDisplay.putExtra("items_rate", (HashMap<String, Object>) partiesItemsRate.get(prodKey));
+                            partySalesDisplay.putExtra("items_total", (HashMap<String, Object>) partiesItemsTotal.get(prodKey));
+                            partySalesDisplay.putExtra("party_bill_no", partiesBillNo.get(prodKey).toString());
+                            if (partiesGST.size() > 0)
+                                partySalesDisplay.putExtra("party_gst", partiesGST.get(prodKey).toString());
+                            partySalesDisplay.putExtra("party_bill_date", partiesBillDate.get(prodKey).toString());
+                            partySalesDisplay.putExtra("amount_received", Integer.parseInt(partiesAmountReceived.get(prodKey).toString()));
+                            context.startActivity(partySalesDisplay);
+                        }
+                    });
+
+                    // Add the TableRow to the TableLayout
+                    tableLayout.addView(tr);
+                }
+            }
+        } catch (Exception e) {
+            Log.e("Error", e.getMessage());
+        }
+    }
+
+    private static HashMap<String, Object> productsSold = new HashMap<>();
+    private static HashMap<String, Object> productsTotal = new HashMap<>();
+
+    private static void populateProduct(Context context, View itemView, Date pickedDate) throws ParseException {
+        try {
+            cashAmount = 0;
+            totalBill = 0;
+
+            productsSold = new HashMap<>();
+            productsTotal = new HashMap<>();
+            HashMap<String, Object> bill = FireBaseAPI.billing;
+            for (String key : bill.keySet()) {
+                HashMap<String, Object> party = (HashMap<String, Object>) bill.get(key);
+                for (String partyKey : party.keySet()) {
+                    HashMap<String, Object> partyName = (HashMap<String, Object>) party.get(partyKey);
+                    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+                    Date soldDate = formatter.parse(partyName.get("sold_date").toString());
                     if (pickedDate.compareTo(soldDate) == 0) {
                         if (partyName.containsKey("amount_received")) {
                             cashAmount += Integer.parseInt(partyName.get("amount_received").toString());
@@ -673,72 +626,185 @@ public class Sales implements Serializable {
                             productsTotal.put(item, _Total);
                         }
                     }
+                }
             }
-        }
 
-        TextView tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
-        tvCashAmount.setText("");
-        tvCashAmount.append("Cash sale: " + cashAmount);
+            TextView tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
+            tvCashAmount.setText("");
+            tvCashAmount.append("Cash sale: " + cashAmount);
 
-        TextView tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
-        tvCreditAmount.setText("");
-        tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
+            TextView tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
+            tvCreditAmount.setText("");
+            tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
 
-        if (productsSold.size() > 0) {
-            TableLayout tableLayout = itemView.findViewById(R.id.tl_product);
-            tableLayout.removeAllViews();
-            for (String prodKey : productsSold.keySet()) {
+            if (productsSold.size() > 0) {
+                TableLayout tableLayout = itemView.findViewById(R.id.tl_product);
+                tableLayout.removeAllViews();
+                for (String prodKey : productsSold.keySet()) {
             /* Create a TableRow dynamically */
-                TableRow tr = new TableRow(context);
-                tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
+                    TableRow tr = new TableRow(context);
+                    tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
 
-                tr.setLayoutParams(new TableRow.LayoutParams(
-                        TableRow.LayoutParams.MATCH_PARENT,
-                        TableRow.LayoutParams.MATCH_PARENT));
-                tr.setPadding(16, 16, 16, 16);
-                tr.setWeightSum(3);
+                    tr.setLayoutParams(new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.MATCH_PARENT));
+                    tr.setPadding(16, 16, 16, 16);
+                    tr.setWeightSum(3);
 
             /*Params*/
-                TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT);
+                    TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT);
 
-                params.weight = 1.0f;
+                    params.weight = 1.0f;
 
 
                 /* Product Name --> TextView */
-                TextView name = new TextView(context);
-                name.setLayoutParams(params);
+                    TextView name = new TextView(context);
+                    name.setLayoutParams(params);
 
-                name.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                name.setPadding(16, 16, 16, 16);
-                name.setText(prodKey);
-                name.setGravity(Gravity.CENTER);
-                tr.addView(name);
+                    name.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    name.setPadding(16, 16, 16, 16);
+                    name.setText(prodKey);
+                    name.setGravity(Gravity.CENTER);
+                    tr.addView(name);
 
                 /* Product Qty --> TextView */
-                TextView Qty = new TextView(context);
-                Qty.setLayoutParams(params);
+                    TextView Qty = new TextView(context);
+                    Qty.setLayoutParams(params);
 
-                Qty.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                Qty.setPadding(16, 16, 16, 16);
-                Qty.setText(productsSold.get(prodKey).toString());
-                Qty.setGravity(Gravity.CENTER);
-                tr.addView(Qty);
+                    Qty.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    Qty.setPadding(16, 16, 16, 16);
+                    Qty.setText(productsSold.get(prodKey).toString());
+                    Qty.setGravity(Gravity.CENTER);
+                    tr.addView(Qty);
 
 
                 /* Product Price --> TextView */
-                TextView rate = new TextView(context);
-                rate.setLayoutParams(params);
+                    TextView rate = new TextView(context);
+                    rate.setLayoutParams(params);
 
-                rate.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                rate.setPadding(16, 16, 16, 16);
-                rate.setText(productsTotal.get(prodKey).toString());
-                rate.setGravity(Gravity.CENTER);
-                tr.addView(rate); // Adding textView to table-row.
+                    rate.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    rate.setPadding(16, 16, 16, 16);
+                    rate.setText(productsTotal.get(prodKey).toString());
+                    rate.setGravity(Gravity.CENTER);
+                    tr.addView(rate); // Adding textView to table-row.
 
-                // Add the TableRow to the TableLayout
-                tableLayout.addView(tr);
+                    // Add the TableRow to the TableLayout
+                    tableLayout.addView(tr);
+                }
             }
+        } catch (Exception e) {
+            Log.e("Error", e.getMessage());
+        }
+    }
+
+    private static void populateProduct(Context context, View itemView, Date pickedDate, String route) throws ParseException {
+        try {
+            cashAmount = 0;
+            totalBill = 0;
+
+            productsSold = new HashMap<>();
+            productsTotal = new HashMap<>();
+            HashMap<String, Object> bill = FireBaseAPI.billing;
+            for (String key : bill.keySet()) {
+                HashMap<String, Object> party = (HashMap<String, Object>) bill.get(key);
+                for (String partyKey : party.keySet()) {
+                    HashMap<String, Object> partyName = (HashMap<String, Object>) party.get(partyKey);
+                    SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+                    Date soldDate = formatter.parse(partyName.get("sold_date").toString());
+                    if (route.equalsIgnoreCase(partyName.get("sold_route").toString()))
+                        if (pickedDate.compareTo(soldDate) == 0) {
+                            if (partyName.containsKey("amount_received")) {
+                                cashAmount += Integer.parseInt(partyName.get("amount_received").toString());
+                            }
+                            if (partyName.containsKey("net_total")) {
+                                totalBill += Integer.parseInt(partyName.get("net_total").toString());
+                            }
+                            HashMap<String, Object> itemsSold = (HashMap<String, Object>) partyName.get("sold_items");
+                            HashMap<String, Object> itemsTotal = (HashMap<String, Object>) partyName.get("sold_items_total");
+                            for (String item : itemsSold.keySet()) {
+                                int _Item = Integer.parseInt(itemsSold.get(item).toString());
+                                int _Total = Integer.parseInt(itemsTotal.get(item).toString());
+
+                                if (productsSold.containsKey(item)) {
+                                    int sold = Integer.parseInt(productsSold.get(item).toString());
+                                    int total = Integer.parseInt(productsTotal.get(item).toString());
+                                    _Item = sold + _Item;
+                                    _Total = total + _Total;
+                                }
+                                productsSold.put(item, _Item);
+                                productsTotal.put(item, _Total);
+                            }
+                        }
+                }
+            }
+
+            TextView tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
+            tvCashAmount.setText("");
+            tvCashAmount.append("Cash sale: " + cashAmount);
+
+            TextView tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
+            tvCreditAmount.setText("");
+            tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
+
+            if (productsSold.size() > 0) {
+                TableLayout tableLayout = itemView.findViewById(R.id.tl_product);
+                tableLayout.removeAllViews();
+                for (String prodKey : productsSold.keySet()) {
+            /* Create a TableRow dynamically */
+                    TableRow tr = new TableRow(context);
+                    tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
+
+                    tr.setLayoutParams(new TableRow.LayoutParams(
+                            TableRow.LayoutParams.MATCH_PARENT,
+                            TableRow.LayoutParams.MATCH_PARENT));
+                    tr.setPadding(16, 16, 16, 16);
+                    tr.setWeightSum(3);
+
+            /*Params*/
+                    TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT);
+
+                    params.weight = 1.0f;
+
+
+                /* Product Name --> TextView */
+                    TextView name = new TextView(context);
+                    name.setLayoutParams(params);
+
+                    name.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    name.setPadding(16, 16, 16, 16);
+                    name.setText(prodKey);
+                    name.setGravity(Gravity.CENTER);
+                    tr.addView(name);
+
+                /* Product Qty --> TextView */
+                    TextView Qty = new TextView(context);
+                    Qty.setLayoutParams(params);
+
+                    Qty.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    Qty.setPadding(16, 16, 16, 16);
+                    Qty.setText(productsSold.get(prodKey).toString());
+                    Qty.setGravity(Gravity.CENTER);
+                    tr.addView(Qty);
+
+
+                /* Product Price --> TextView */
+                    TextView rate = new TextView(context);
+                    rate.setLayoutParams(params);
+
+                    rate.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
+                    rate.setPadding(16, 16, 16, 16);
+                    rate.setText(productsTotal.get(prodKey).toString());
+                    rate.setGravity(Gravity.CENTER);
+                    tr.addView(rate); // Adding textView to table-row.
+
+                    // Add the TableRow to the TableLayout
+                    tableLayout.addView(tr);
+                }
+            }
+        } catch (Exception e) {
+            Log.e("Error", e.getMessage());
         }
     }
 }

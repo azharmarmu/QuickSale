@@ -24,6 +24,11 @@
         android:visibility="gone" />
 
     <include
+        android:id="@+id/sales_store_holder"
+        layout="@layout/view_sales_store"
+        android:visibility="gone" />
+
+    <include
         android:id="@+id/return_holder"
         layout="@layout/view_return"
         android:visibility="gone" />

@@ -18,6 +18,11 @@
             android:title="@string/sales" />
 
         <item
+            android:id="@+id/nav_sales_store"
+            android:icon="@drawable/ic_sales"
+            android:title="@string/sales_store" />
+
+        <item
             android:id="@+id/nav_returns"
             android:icon="@drawable/ic_undo"
             android:title="@string/returns" />

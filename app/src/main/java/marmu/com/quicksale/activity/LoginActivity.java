@@ -55,7 +55,8 @@ public class LoginActivity extends AppCompatActivity {
                 etOTP.setText(messageText);
                 String code = etOTP.getText().toString();
                 etOTP.setSelection(code.length());
-                signInWithPhoneAuthCredential(new PhoneAuthCredential(phoneVerificationID, code));
+                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(phoneVerificationID, code);
+                signInWithPhoneAuthCredential(credential);
             }
         });
     }
@@ -76,7 +77,8 @@ public class LoginActivity extends AppCompatActivity {
 
             if (!otp.equals("")) {
                 DialogUtils.showProgressDialog(LoginActivity.this, "Loading...");
-                signInWithPhoneAuthCredential(new PhoneAuthCredential(phoneVerificationID, otp));
+                PhoneAuthCredential credential = PhoneAuthProvider.getCredential(phoneVerificationID, otp);
+                signInWithPhoneAuthCredential(credential);
             } else {
                 changeMapToList();
                 boolean isUserExists = false;
@@ -94,7 +96,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (phone.length() == 10) {
                     if (isUserExists) {
                         DialogUtils.showProgressDialog(LoginActivity.this, "Loading...");
-                        phoneNumberVerification(phone);
+                        phoneNumberVerification("+91" + phone);
                     } else {
                         Toast.makeText(getApplicationContext(), "Not an validate admin", Toast.LENGTH_SHORT).show();
                     }

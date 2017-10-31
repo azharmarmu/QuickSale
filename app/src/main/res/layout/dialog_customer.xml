@@ -10,8 +10,9 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="Name"
-        android:inputType="textAutoComplete"
+        android:inputType="textAutoComplete|textCapCharacters"
         android:padding="8dp"
+        android:textAllCaps="true"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
 
@@ -34,8 +35,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:hint="GST-IN"
-        android:inputType="text"
+        android:inputType="textAutoComplete|textCapCharacters"
         android:padding="8dp"
+        android:textAllCaps="true"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
 

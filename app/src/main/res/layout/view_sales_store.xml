@@ -119,7 +119,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:padding="16dp"
-                    android:text="Bill No"
+                    android:text="SalesMan"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
                     android:textColor="@color/colorWhite" />
 

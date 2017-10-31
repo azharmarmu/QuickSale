@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 
+import marmu.com.quicksale.listeners.CustomerListener;
 import marmu.com.quicksale.utils.Constants;
 
 /**
@@ -39,6 +40,7 @@ public class FireBaseAPI {
     public static HashMap<String, Object> productHSN = new HashMap<>();
     public static HashMap<String, Object> order = new HashMap<>();
     public static HashMap<String, Object> billing = new HashMap<>();
+    public static HashMap<String, Object> billingStore = new HashMap<>();
     public static HashMap<String, Object> users = new HashMap<>();
 
     public static void getCompany() {
@@ -110,6 +112,12 @@ public class FireBaseAPI {
         });
     }
 
+    private static CustomerListener customerListener;
+
+    public void setCustomerListener(CustomerListener customerListener) {
+        FireBaseAPI.customerListener = customerListener;
+    }
+
     public static void getCustomer() {
         customerDBRef.keepSynced(true);
         customerDBRef.addValueEventListener(new ValueEventListener() {
@@ -118,6 +126,7 @@ public class FireBaseAPI {
                 try {
                     if (dataSnapshot.getValue() != null) {
                         customer = (HashMap<String, Object>) dataSnapshot.getValue();
+                        customerListener.getCustomer(customer);
                     } else {
                         customer.clear();
                     }
@@ -256,12 +265,22 @@ public class FireBaseAPI {
 
     public static void getBilling() {
         billingDBREf.keepSynced(true);
-        billingDBREf.orderByValue().addValueEventListener(new ValueEventListener() {
+        billingDBREf.orderByKey().addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 try {
+                    billing.clear();
                     if (dataSnapshot.getValue() != null) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            HashMap<String, Object> history = (HashMap<String, Object>) snapshot.getValue();
+                            assert history != null;
+                            for (String key : history.keySet()) {
+                                billing.put(key, history.get(key));
+                            }
+                        }
+                        Log.e("BillingChild" , billing.toString());
                         billing = (HashMap<String, Object>) dataSnapshot.getValue();
+                        Log.e("BillingValue" , billing.toString());
                     } else {
                         billing.clear();
                     }

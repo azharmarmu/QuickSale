@@ -1,4 +1,5 @@
 <resources>
+    <string name="app_store_name">QuickSale</string>
     <string name="app_name">QS-Admin</string>
     <string name="title_activity_landing">LandingActivity</string>
 
@@ -21,4 +22,6 @@
     <string name="route">Route</string>
     <string name="customer">Customer</string>
     <string name="create">Create</string>
+    <string name="sales_store">Sales (store)</string>
+    <string name="sales_deprecated">Sales - deprecated</string>
 </resources>
