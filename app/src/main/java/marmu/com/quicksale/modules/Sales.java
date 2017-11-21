@@ -406,7 +406,7 @@ public class Sales implements Serializable {
                     name.setGravity(Gravity.CENTER);
                     tr.addView(name);
 
-            /* Product BillNo --> TextView */
+            /* Product SalesMan --> TextView */
                     TextView salesMan = new TextView(context);
                     salesMan.setLayoutParams(params);
 
