@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/activity_horizontal_margin"
-    tools:context="marmu.com.quicksale.activity.ReturnActivity">
+    tools:context="azhar.com.quicksale.activity.ReturnActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"

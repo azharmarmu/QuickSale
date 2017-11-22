@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="marmu.com.quicksale">
+    package="azhar.com.quicksale">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
-        android:name=".MyApplication"
+        android:name="azhar.com.quicksale.MyApplication"
         android:allowBackup="true"
         android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activity.SplashActivity"
+            android:name="azhar.com.quicksale.activity.SplashActivity"
             android:theme="@style/SplashScreenTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,36 +27,36 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activity.LoginActivity"
+            android:name="azhar.com.quicksale.activity.LoginActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".activity.LandingActivity"
+            android:name="azhar.com.quicksale.activity.LandingActivity"
             android:label="@string/title_activity_landing"
             android:launchMode="singleInstance"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".activity.CreateOrderActivity"
+            android:name="azhar.com.quicksale.activity.CreateOrderActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".activity.SetTakenActivity"
+            android:name="azhar.com.quicksale.activity.SetTakenActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".activity.SalesManActivity"
+            android:name="azhar.com.quicksale.activity.SalesManActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".activity.ReturnActivity"
+            android:name="azhar.com.quicksale.activity.ReturnActivity"
             android:windowSoftInputMode="stateHidden" />
 
         <receiver
-            android:name=".sms.SMSReceiver"
+            android:name="azhar.com.quicksale.sms.SMSReceiver"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
 
-        <activity android:name=".activity.PartySalesDisplay" />
+        <activity android:name="azhar.com.quicksale.activity.PartySalesDisplay" />
     </application>
 
 </manifest>
