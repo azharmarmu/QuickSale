@@ -1,26 +1,21 @@
 package azhar.com.quicksale.modules;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.TextView;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import azhar.com.quicksale.R;
-import azhar.com.quicksale.adapter.CustomerAdapter;
-import azhar.com.quicksale.api.FireBaseAPI;
+import azhar.com.quicksale.activity.LandingActivity;
+import azhar.com.quicksale.fragment.addCustomerFragment;
+import azhar.com.quicksale.fragment.viewCustomerFragment;
 import azhar.com.quicksale.model.CustomerModel;
-import azhar.com.quicksale.utils.DialogUtils;
 
 /**
  * Created by azharuddin on 24/7/17.
@@ -31,91 +26,47 @@ public class Customer {
     private static HashMap<String, Object> customer = new HashMap<>();
     private static List<CustomerModel> customerList;
 
-    public static void evaluate(Context context, View itemView) {
-        customer = FireBaseAPI.customer;
-        changeMapToList();
-        populateCustomer(context, itemView);
-        addCustomer(context, itemView);
+    public void evaluate(LandingActivity activity, View itemView) {
+        ViewPager viewPager = itemView.findViewById(R.id.customer_viewpager);
+        setupViewPager(activity, viewPager);
+
+        TabLayout tabLayout = itemView.findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
     }
 
-    private static void changeMapToList() {
-        customerList = new ArrayList<>();
-        if (customer != null) {
-            for (String key : customer.keySet()) {
-                HashMap<String, Object> customerDetails = (HashMap<String, Object>) customer.get(key);
-                customerList.add(new CustomerModel(key,
-                        (String) customerDetails.get("customer_name"),
-                        (String) customerDetails.get("customer_address"),
-                        (String) customerDetails.get("customer_gst")));
-            }
+    private void setupViewPager(LandingActivity activity, ViewPager viewPager) {
+        CustomerViewPagerAdapter adapter = new CustomerViewPagerAdapter(activity.getSupportFragmentManager());
+        adapter.addFragment(new addCustomerFragment(), "ADD");
+        adapter.addFragment(new viewCustomerFragment(), "View");
+        viewPager.setAdapter(adapter);
+    }
+
+    public class CustomerViewPagerAdapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();
+
+        CustomerViewPagerAdapter(FragmentManager manager) {
+            super(manager);
         }
-    }
 
-    private static void populateCustomer(Context context, View itemView) {
-        CustomerAdapter adapter = new CustomerAdapter(context, customerList);
-        RecyclerView customerView = itemView.findViewById(R.id.rv_customer);
-        customerView.removeAllViews();
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
-        customerView.setLayoutManager(layoutManager);
-        customerView.setItemAnimator(new DefaultItemAnimator());
-        customerView.setAdapter(adapter);
-    }
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
 
-    private static void addCustomer(final Context context, final View itemView) {
-        TextView addCustomer = itemView.findViewById(R.id.btn_add_customer);
-        addCustomer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                customer.clear();
-                customer = FireBaseAPI.customer;
-                EditText name = itemView.findViewById(R.id.et_customer_name);
-                EditText address = itemView.findViewById(R.id.et_customer_address);
-                EditText gst = itemView.findViewById(R.id.et_customer_gst);
-                String CustomerName = name.getText().toString();
-                String CustomerAddress = address.getText().toString();
-                String CustomerGst = gst.getText().toString();
-                HashMap<String, Object> customerMap = new HashMap<>();
-                if (!CustomerName.isEmpty() && !CustomerAddress.isEmpty() && !CustomerGst.isEmpty()) {
-                    if (customer.size() > 0) {
-                        for (String key : customer.keySet()) {
-                            HashMap<String, Object> myCustomer = (HashMap<String, Object>) customer.get(key);
-                            if (!myCustomer.get("customer_name").toString().equals(CustomerName)) {
-                                customerMap.put("customer_name", CustomerName);
-                                customerMap.put("customer_address", CustomerAddress);
-                                customerMap.put("customer_gst", CustomerGst);
-                                name.setText("");
-                                address.setText("");
-                                gst.setText("");
-                                String myKey = FireBaseAPI.customerDBRef.push().getKey();
-                                FireBaseAPI.customerDBRef.child(myKey).updateChildren(customerMap);
-                            } else {
-                                name.setError("Already Exists");
-                                name.requestFocus();
-                            }
-                        }
-                    } else {
-                        customerMap.put("customer_name", CustomerName);
-                        customerMap.put("customer_address", CustomerAddress);
-                        customerMap.put("customer_gst", CustomerGst);
-                        name.setText("");
-                        address.setText("");
-                        gst.setText("");
-                        String myKey = FireBaseAPI.customerDBRef.push().getKey();
-                        FireBaseAPI.customerDBRef.child(myKey).updateChildren(customerMap)
-                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if (task.isSuccessful()) {
-                                            DialogUtils.appToastShort(context, "Customer added");
-                                        } else {
-                                            DialogUtils.appToastShort(context, "Customer not added");
-                                        }
-                                    }
-                                });
-                    }
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
+        }
 
-                }
-            }
-        });
+        void addFragment(Fragment fragment, String title) {
+            mFragmentList.add(fragment);
+            mFragmentTitleList.add(title);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitleList.get(position);
+        }
     }
 }

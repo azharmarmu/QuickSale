@@ -3,6 +3,7 @@ package azhar.com.quicksale.adapter;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -13,14 +14,18 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import azhar.com.quicksale.R;
-import azhar.com.quicksale.api.FireBaseAPI;
-import azhar.com.quicksale.utils.Constants;
+import azhar.com.quicksale.api.SalesManApi;
 import azhar.com.quicksale.model.SalesManModel;
+import azhar.com.quicksale.utils.Constants;
+import azhar.com.quicksale.utils.DialogUtils;
 
 /**
  * Created by azharuddin on 24/7/17.
@@ -58,11 +63,11 @@ public class SalesManAdapter extends RecyclerView.Adapter<SalesManAdapter.MyView
         return new SalesManAdapter.MyViewHolder(itemView);
     }
 
-    @SuppressLint("RecyclerView")
+    @SuppressLint({"RecyclerView", "SetTextI18n"})
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         final SalesManModel men = salesManList.get(position);
-        holder.salesManName.setText(men.getName());
+        holder.salesManName.setText(men.getName() + "/" + men.getPhone());
 
         if (viewInfo.equals(Constants.EDIT)) {
             holder.salesEdit.setText("Edit");
@@ -76,7 +81,7 @@ public class SalesManAdapter extends RecyclerView.Adapter<SalesManAdapter.MyView
             holder.salesDelete.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    FireBaseAPI.salesManDBRef.child(men.getName()).removeValue();
+                    SalesManApi.salesManDBRef.child(men.getName()).removeValue();
                     salesManList.remove(position);
                     notifyDataSetChanged();
                 }
@@ -128,6 +133,7 @@ public class SalesManAdapter extends RecyclerView.Adapter<SalesManAdapter.MyView
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
         final HashMap<String, Object> salesMan = new HashMap<>();
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        assert inflater != null;
         final View dialogView = inflater.inflate(R.layout.dialog_sales_man, null);
         dialogBuilder.setView(dialogView);
 
@@ -142,14 +148,29 @@ public class SalesManAdapter extends RecyclerView.Adapter<SalesManAdapter.MyView
         dialogBuilder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
-                String SalesManName = name.getText().toString();
-                String SalesManPhone = phone.getText().toString();
-                if (!SalesManName.isEmpty() && !SalesManPhone.isEmpty()) {
-                    FireBaseAPI.salesManDBRef.child(originalName).removeValue();
+                String salesManName = name.getText().toString();
+                String salesManPhone = phone.getText().toString();
+                if (!salesManName.isEmpty() &&
+                        !salesManPhone.isEmpty()) {
+                    SalesManApi.salesManDBRef.child(originalPhone).removeValue();
                     salesManList.remove(position);
-                    salesManList.add(new SalesManModel(SalesManName, SalesManPhone));
-                    salesMan.put(SalesManName, SalesManPhone);
-                    FireBaseAPI.salesManDBRef.updateChildren(salesMan);
+                    salesManList.add(new SalesManModel(salesManName, salesManPhone));
+                    salesMan.put("sales_man_name", salesManName);
+                    salesMan.put("sales_man_phone", salesManPhone);
+                    SalesManApi.salesManDBRef.child(salesManPhone).
+                            updateChildren(salesMan)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        DialogUtils.appToastShort(context,
+                                                "Sales man updated");
+                                    } else {
+                                        DialogUtils.appToastShort(context,
+                                                "Sales man not updated");
+                                    }
+                                }
+                            });
                     notifyDataSetChanged();
                 }
             }

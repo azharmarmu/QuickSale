@@ -21,9 +21,9 @@ import java.util.List;
 
 import azhar.com.quicksale.R;
 import azhar.com.quicksale.adapter.ReturnAdapter;
-import azhar.com.quicksale.api.FireBaseAPI;
-import azhar.com.quicksale.utils.Constants;
+import azhar.com.quicksale.api.TakenApi;
 import azhar.com.quicksale.model.TakenModel;
+import azhar.com.quicksale.utils.Constants;
 
 /**
  * Created by azharuddin on 25/7/17.
@@ -64,7 +64,7 @@ public class Return {
     }
 
     private static void changeMapToList(Context context, View itemView, Date pickedDate) {
-        HashMap<String, Object> taken = FireBaseAPI.taken;
+        HashMap<String, Object> taken = TakenApi.taken;
         returnList = new ArrayList<>();
         if (taken != null) {
             for (String key : taken.keySet()) {

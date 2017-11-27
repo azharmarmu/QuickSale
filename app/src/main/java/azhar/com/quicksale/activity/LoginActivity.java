@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import azhar.com.quicksale.R;
-import azhar.com.quicksale.api.FireBaseAPI;
+import azhar.com.quicksale.api.AdminApi;
 import azhar.com.quicksale.model.AdminModel;
 import azhar.com.quicksale.sms.SMSListener;
 import azhar.com.quicksale.sms.SMSReceiver;
@@ -70,7 +70,7 @@ public class LoginActivity extends AppCompatActivity
     }
 
     private void changeMapToList() {
-        HashMap<String, Object> admin = FireBaseAPI.admin;
+        HashMap<String, Object> admin = AdminApi.admin;
         adminList.clear();
 
         for (String key : admin.keySet()) {

@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/til_sales_man_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
+
+        <EditText
+            android:id="@+id/et_sales_man_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="Sales Man"
+            android:inputType="textAutoComplete|textCapCharacters"
+            android:padding="8dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/til_sales_man_phone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp">
+
+        <EditText
+            android:id="@+id/et_sales_man_phone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true"
+            android:ems="10"
+            android:hint="Phone"
+            android:inputType="phone"
+            android:maxLength="10"
+            android:minEms="10"
+            android:padding="8dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
+    </android.support.design.widget.TextInputLayout>
+
+
+    <TextView
+        android:id="@+id/btn_add_sales_man"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="@drawable/box_white_thick_border_corner_ripple"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="Add"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
+
+</LinearLayout>

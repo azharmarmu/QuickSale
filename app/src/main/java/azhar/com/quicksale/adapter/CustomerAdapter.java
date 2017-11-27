@@ -1,22 +1,31 @@
 package azhar.com.quicksale.adapter;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import java.util.HashMap;
 import java.util.List;
 
 import azhar.com.quicksale.R;
-import azhar.com.quicksale.api.FireBaseAPI;
+import azhar.com.quicksale.api.CustomerApi;
 import azhar.com.quicksale.model.CustomerModel;
+import azhar.com.quicksale.utils.DialogUtils;
 
 /**
  * Created by azharuddin on 24/7/17.
@@ -51,14 +60,15 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.MyView
         holder.customerEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                alertDialog(customer, position);
+                editCustomerDialog(customer, position);
+                //alertDialog(customer, position);
             }
         });
 
         holder.customerDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                FireBaseAPI.customerDBRef.child(customer.getKey()).removeValue();
+                CustomerApi.customerDBRef.child(customer.getKey()).removeValue();
                 customerList.remove(position);
                 notifyDataSetChanged();
             }
@@ -87,12 +97,13 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.MyView
     @SuppressLint("InflateParams")
     private void alertDialog(CustomerModel customer, final int position) {
         final String key = customer.getKey();
-        final String name = customer.getName();
-        final String phone = customer.getPhone();
+        String name = customer.getName();
+        String phone = customer.getPhone();
         String gst = customer.getGst();
+
         AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-        final HashMap<String, Object> customerMap = new HashMap<>();
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        assert inflater != null;
         final View dialogView = inflater.inflate(R.layout.dialog_customer, null);
         dialogBuilder.setView(dialogView);
 
@@ -113,13 +124,16 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.MyView
                 String CustomerPhone = etPhone.getText().toString();
                 String CustomerGst = etGst.getText().toString();
                 if (!CustomerName.isEmpty() && !CustomerPhone.isEmpty() && !CustomerGst.isEmpty()) {
-                    FireBaseAPI.customerDBRef.child(key).removeValue();
+                    CustomerApi.customerDBRef.child(key).removeValue();
                     customerList.remove(position);
                     customerList.add(new CustomerModel(key, CustomerName, CustomerPhone, CustomerGst));
+
+                    HashMap<String, Object> customerMap = new HashMap<>();
                     customerMap.put("customer_name", CustomerName);
                     customerMap.put("customer_phone", CustomerPhone);
                     customerMap.put("customer_gst", CustomerGst);
-                    FireBaseAPI.customerDBRef.child(key).updateChildren(customerMap);
+
+                    CustomerApi.customerDBRef.child(key).updateChildren(customerMap);
                     notifyDataSetChanged();
                 }
             }
@@ -131,5 +145,70 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.MyView
         });
         AlertDialog b = dialogBuilder.create();
         b.show();
+    }
+
+    private void editCustomerDialog(final CustomerModel customerModel, int position) {
+        final Dialog dialog = new Dialog(context, R.style.DialogTheme);
+        dialog.setContentView(R.layout.fragment_add_customer);
+
+        Window window = dialog.getWindow();
+        assert window != null;
+        WindowManager.LayoutParams layoutParams = window.getAttributes();
+        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.gravity = Gravity.BOTTOM;
+
+        TextView addCustomer = dialog.findViewById(R.id.btn_add_customer);
+        addCustomer.setText("Update");
+        addCustomer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //delete customer
+                String key = customerModel.getKey();
+                CustomerApi.customerDBRef.child(key).removeValue();
+
+                HashMap<String, Object> customer = CustomerApi.customer;
+
+                EditText name = dialog.findViewById(R.id.et_customer_name);
+                EditText address = dialog.findViewById(R.id.et_customer_address);
+                EditText gst = dialog.findViewById(R.id.et_customer_gst);
+
+                String customerName = name.getText().toString();
+                String customerAddress = address.getText().toString();
+                String customerGst = gst.getText().toString();
+                HashMap<String, Object> customerMap = new HashMap<>();
+                if (!customerName.isEmpty()
+                        && !customerAddress.isEmpty()
+                        && !customerGst.isEmpty()) {
+                    if (!customer.containsKey(customerGst)) {
+                        customerMap.put("customer_name", customerName);
+                        customerMap.put("customer_address", customerAddress);
+                        customerMap.put("customer_gst", customerGst);
+                        name.setText("");
+                        address.setText("");
+                        gst.setText("");
+                        CustomerApi.customerDBRef.child(customerGst)
+                                .updateChildren(customerMap)
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            DialogUtils.appToastShort(context,
+                                                    "Customer updated");
+                                        } else {
+                                            DialogUtils.appToastShort(context,
+                                                    "Customer not updated");
+                                        }
+                                    }
+                                });
+                    }
+                } else {
+                    name.setError("Customer already exists");
+                    name.requestFocus();
+                }
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
 }

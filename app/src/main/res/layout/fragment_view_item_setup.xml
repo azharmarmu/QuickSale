@@ -1,0 +1,60 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TableRow
+        android:id="@+id/table_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true">
+
+        <TextView
+            android:layout_weight="1"
+            android:background="@drawable/box_primary"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="Product"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+            android:textColor="@color/colorWhite"
+            android:textSize="16sp" />
+
+
+        <TextView
+            android:layout_weight="1"
+            android:background="@drawable/box_primary"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="HSN"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+            android:textColor="@color/colorWhite"
+            android:textSize="16sp" />
+
+
+        <TextView
+            android:layout_weight="1"
+            android:background="@drawable/box_primary"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="Rate"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+            android:textColor="@color/colorWhite"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_weight="1"
+            android:background="@drawable/box_primary"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="Status"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
+            android:textColor="@color/colorWhite"
+            android:textSize="16sp" />
+
+    </TableRow>
+
+    <TableLayout
+        android:id="@+id/table_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/table_header" />
+</RelativeLayout>

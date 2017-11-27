@@ -1,30 +1,11 @@
 package azhar.com.quicksale.modules;
 
 import android.annotation.SuppressLint;
-import android.app.DatePickerDialog;
 import android.content.Context;
-import android.content.Intent;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import android.widget.DatePicker;
-import android.widget.EditText;
-import android.widget.TextView;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
 
-import azhar.com.quicksale.R;
-import azhar.com.quicksale.activity.CreateOrderActivity;
-import azhar.com.quicksale.adapter.OrderAdapter;
-import azhar.com.quicksale.api.FireBaseAPI;
 import azhar.com.quicksale.model.OrderModel;
 
 /**
@@ -38,7 +19,7 @@ public class Order {
 
     public static void evaluate(final Context context, View itemView) {
 
-        try {
+       /* try {
             final EditText datePicker = itemView.findViewById(R.id.et_date_picker);
 
             Date currentDate = new Date();
@@ -63,10 +44,10 @@ public class Order {
 
         datePicker(context, itemView);
 
-        createOrder(context, itemView);
+        createOrder(context, itemView);*/
     }
 
-    private static void changeMapToList(Context context, View itemView, Date pickedDate) {
+    /*private static void changeMapToList(Context context, View itemView, Date pickedDate) {
         HashMap<String, Object> order = FireBaseAPI.order;
         orderList = new ArrayList<>();
         if (order != null) {
@@ -157,5 +138,5 @@ public class Order {
                 context.startActivity(intent);
             }
         });
-    }
+    }*/
 }

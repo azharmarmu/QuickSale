@@ -16,13 +16,15 @@ import java.util.Date;
 public class Constants {
     public static final FirebaseAuth AUTH = FirebaseAuth.getInstance();
     public static final FirebaseDatabase DATABASE = FirebaseDatabase.getInstance();
+    public static final String ENV = "development";
+    //public static final String ENV = "production";
+
     public static final String USERS = "users";
     public static final String COMPANY = "company";
     public static final String ADMIN_TAKEN = "taken";
     public static final String ADMIN = "admin";
     public static final String ADMIN_ORDER = "order";
-    public static final String ADMIN_PRODUCT_PRICE = "product_and_price";
-    public static final String ADMIN_PRODUCT_HSN = "product_and_hsn";
+    public static final String PRODUCTS = "products";
     public static final String SALES_MAN = "sales_man";
     public static final String CUSTOMER = "customer";
     public static final String SALES_MAN_BILLING = "billing";
@@ -41,6 +43,8 @@ public class Constants {
     public static final String CLOSED = "close";
     public static final String START = "start";
     public static final String STARTED = "started";
+
+    public static final String UPDATE = "update";
 
 
     @SuppressLint("SimpleDateFormat")

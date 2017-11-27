@@ -7,9 +7,9 @@ package azhar.com.quicksale.model;
 public class SalesManModel {
     private String name, phone;
 
-    public SalesManModel(String name, String phone) {
-        this.name = name;
+    public SalesManModel(String phone, String name) {
         this.phone = phone;
+        this.name = name;
     }
 
     public String getName() {

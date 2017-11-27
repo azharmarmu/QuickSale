@@ -8,9 +8,12 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
-import java.util.HashMap;
-
-import azhar.com.quicksale.api.FireBaseAPI;
+import azhar.com.quicksale.api.AdminApi;
+import azhar.com.quicksale.api.CompanyApi;
+import azhar.com.quicksale.api.CustomerApi;
+import azhar.com.quicksale.api.ProductsApi;
+import azhar.com.quicksale.api.SalesManApi;
+import azhar.com.quicksale.api.TakenApi;
 import azhar.com.quicksale.utils.Constants;
 
 
@@ -30,15 +33,13 @@ public class SplashActivity extends AppCompatActivity {
 
         setContentView(layout);
 
-        FireBaseAPI.getCompany();
-        FireBaseAPI.getOrder();
-        FireBaseAPI.getCustomer();
-        FireBaseAPI.getTaken();
-        FireBaseAPI.getBilling();
-        FireBaseAPI.getSalesMan();
-        FireBaseAPI.getProductPrice();
-        FireBaseAPI.getProductHSN();
-        FireBaseAPI.getAdmin();
+        new CompanyApi().getCompany(); //calling company details Api
+        new AdminApi().getAdmin(); //calling admin details Api
+        new TakenApi().getTaken(); //calling taken details Api
+        new SalesManApi().getSalesMan(); //calling salesman Api
+        new CustomerApi().getCustomer(); //calling Customer Api
+        new ProductsApi().getProducts(); //calling Products Api
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -55,15 +56,6 @@ public class SplashActivity extends AppCompatActivity {
             }
         }, 1000);
 
-    }
-
-    private void updateTaken() {
-        HashMap<String, Object> taken = FireBaseAPI.taken;
-
-    }
-
-    private void updateOrder() {
-        HashMap<String, Object> order = FireBaseAPI.order;
     }
 
     private boolean isLoggedIn() {

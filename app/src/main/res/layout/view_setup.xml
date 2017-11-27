@@ -1,74 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/activity_horizontal_margin">
+    android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/view"
+    <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/colorPrimary">
-
-            <TextView
-                android:layout_weight="1"
-                android:gravity="center"
-                android:padding="16dp"
-                android:text="Product"
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
-                android:textColor="@color/colorWhite" />
-
-
-            <TextView
-                android:layout_weight="1"
-                android:gravity="end"
-                android:padding="16dp"
-                android:text="HSN"
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
-                android:textColor="@color/colorWhite" />
-
-
-            <TextView
-                android:layout_weight="1"
-                android:gravity="end"
-                android:padding="16dp"
-                android:text="Rate"
-                android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
-                android:textColor="@color/colorWhite" />
-
-        </TableRow>
-
-        <TableLayout
-            android:id="@+id/table_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/add_more"
+        <android.support.design.widget.TabLayout
+            android:id="@+id/tabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/box_white_thick_border_corner_ripple"
-            android:gravity="center"
-            android:padding="@dimen/activity_horizontal_margin"
-            android:text="Add +"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textColor="@color/colorLightBlack" />
+            app:tabGravity="fill"
+            app:tabMode="fixed" />
+    </android.support.design.widget.AppBarLayout>
 
-        <Button
-            android:id="@+id/btn_setup"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/box_primary"
-            android:onClick="orderSubmit"
-            android:text="SET"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
-            android:textColor="@color/colorLightWhite" />
-    </LinearLayout>
-</ScrollView>
+    <android.support.v4.view.ViewPager
+        android:id="@+id/setup_viewpager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+</LinearLayout>

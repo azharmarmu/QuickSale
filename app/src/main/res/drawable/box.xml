@@ -10,7 +10,7 @@
                 android:width="1dp"
                 android:color="@color/colorAccent" />
             <!--circle filling color-->
-            <solid android:color="@color/colorLightWhite" />
+            <solid android:color="@color/colorWhite" />
         </shape>
     </item>
 </ripple>

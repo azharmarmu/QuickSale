@@ -2,8 +2,8 @@ package azhar.com.quicksale.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -22,7 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import azhar.com.quicksale.R;
-import azhar.com.quicksale.api.FireBaseAPI;
+import azhar.com.quicksale.api.ProductsApi;
+import azhar.com.quicksale.api.TakenApi;
 import azhar.com.quicksale.utils.Constants;
 
 @SuppressWarnings({"unchecked", "deprecation"})
@@ -53,7 +54,7 @@ public class SetTakenActivity extends AppCompatActivity implements Serializable 
     private void isTakenEdit(Bundle extras) {
         if (extras != null) {
             key = extras.getString("key");
-            takenMap = (HashMap<String, Object>) FireBaseAPI.taken.get(key);
+            takenMap = (HashMap<String, Object>) TakenApi.taken.get(key);
             if (takenMap != null) {
                 salesMan = (List<String>) takenMap.get("sales_man_name");
                 populateSalesMan(salesMan);
@@ -81,7 +82,7 @@ public class SetTakenActivity extends AppCompatActivity implements Serializable 
     }
 
     private void populateItemsDetails() {
-        HashMap<String, Object> products = FireBaseAPI.productPrice;
+        HashMap<String, Object> products = ProductsApi.products;
 
         for (String prodKey : products.keySet()) {
             /* Create a TableRow dynamically */
@@ -197,9 +198,9 @@ public class SetTakenActivity extends AppCompatActivity implements Serializable 
             taken.put("sales_order_qty", takenItems);
             taken.put("sales_order_qty_left", takenItems);
             if (key == null) {
-                FireBaseAPI.takenDBRef.push().updateChildren(taken);
+                TakenApi.takenDBRef.push().updateChildren(taken);
             } else {
-                FireBaseAPI.takenDBRef.child(key).updateChildren(taken);
+                TakenApi.takenDBRef.child(key).updateChildren(taken);
             }
             finish();
         }

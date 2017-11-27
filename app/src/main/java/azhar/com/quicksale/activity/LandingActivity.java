@@ -27,21 +27,28 @@ import android.widget.Toast;
 import java.util.HashMap;
 
 import azhar.com.quicksale.R;
-import azhar.com.quicksale.api.FireBaseAPI;
+import azhar.com.quicksale.api.CompanyApi;
+import azhar.com.quicksale.api.CustomerApi;
+import azhar.com.quicksale.api.ProductsApi;
+import azhar.com.quicksale.api.SalesManApi;
 import azhar.com.quicksale.listeners.CustomerListener;
+import azhar.com.quicksale.listeners.ProductsListener;
+import azhar.com.quicksale.listeners.SalesManListener;
 import azhar.com.quicksale.modules.Customer;
 import azhar.com.quicksale.modules.Man;
 import azhar.com.quicksale.modules.Order;
 import azhar.com.quicksale.modules.Return;
 import azhar.com.quicksale.modules.Sales;
-import azhar.com.quicksale.modules.SalesStore;
 import azhar.com.quicksale.modules.Setup;
 import azhar.com.quicksale.modules.Taken;
 
 public class LandingActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, CustomerListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        CustomerListener,
+        SalesManListener,
+        ProductsListener {
 
-    View taken, order, sales, salesStore, returns, customer, salesMan, setup;
+    View taken, order, salesStore, returns, customer, salesMan, setup;
     public static int whereIam = 0;
 
     TextView companyName, companyPhone, companyMail;
@@ -51,8 +58,10 @@ public class LandingActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_landing);
-        new FireBaseAPI().setCustomerListener(this);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        new CustomerApi().setCustomerListener(this);
+        new SalesManApi().setSalesManListener(this);
+        new ProductsApi().setProductsListener(this);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -61,20 +70,19 @@ public class LandingActivity extends AppCompatActivity
 
         taken = findViewById(R.id.taken_holder);
         order = findViewById(R.id.order_holder);
-        sales = findViewById(R.id.sales_holder);
-        salesStore = findViewById(R.id.sales_store_holder);
+        salesStore = findViewById(R.id.sales_holder);
         returns = findViewById(R.id.return_holder);
         customer = findViewById(R.id.customer_holder);
         salesMan = findViewById(R.id.sales_man_holder);
         setup = findViewById(R.id.setup_holder);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navSetup(navigationView.getHeaderView(0));
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.getMenu().getItem(0).setChecked(true);
@@ -89,7 +97,7 @@ public class LandingActivity extends AppCompatActivity
             companyPhone = headerView.findViewById(R.id.admin_phone);
             companyMail = headerView.findViewById(R.id.admin_email);
 
-            HashMap<String, Object> company = FireBaseAPI.company;
+            HashMap<String, Object> company = CompanyApi.company;
 
             final String name = company.get("name").toString();
             final String number = company.get("phone").toString();
@@ -118,6 +126,7 @@ public class LandingActivity extends AppCompatActivity
         final HashMap<String, Object> customerMap = new HashMap<>();
         LayoutInflater inflater = (LayoutInflater) LandingActivity.this
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        assert inflater != null;
         final View dialogView = inflater.inflate(R.layout.dialog_customer, null);
         dialogBuilder.setView(dialogView);
 
@@ -140,11 +149,11 @@ public class LandingActivity extends AppCompatActivity
                 String compPhone = etPhone.getText().toString();
                 String compMail = etMail.getText().toString();
                 if (!compName.isEmpty() && !compPhone.isEmpty() && !compMail.isEmpty()) {
-                    FireBaseAPI.companyDBRef.removeValue();
+                    CompanyApi.companyDBRef.removeValue();
                     customerMap.put("name", compName);
                     customerMap.put("phone", compPhone);
                     customerMap.put("email", compMail);
-                    FireBaseAPI.companyDBRef.updateChildren(customerMap);
+                    CompanyApi.companyDBRef.updateChildren(customerMap);
                     companyName.setText(compName.toUpperCase());
                     companyPhone.setText(compPhone);
                     companyMail.setText(compMail);
@@ -200,14 +209,9 @@ public class LandingActivity extends AppCompatActivity
                 getSupportActionBar().setTitle("Set-up");
             }
             whereIam = 6;
-        } else if (id == R.id.nav_sales_store) {
-            if (getSupportActionBar() != null) {
-                getSupportActionBar().setTitle("Sales (store)");
-            }
-            whereIam = 7;
         }
         switchScreen();
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -215,7 +219,6 @@ public class LandingActivity extends AppCompatActivity
     private void switchScreen() {
         taken.setVisibility(View.GONE);
         order.setVisibility(View.GONE);
-        sales.setVisibility(View.GONE);
         salesStore.setVisibility(View.GONE);
         returns.setVisibility(View.GONE);
         customer.setVisibility(View.GONE);
@@ -232,8 +235,8 @@ public class LandingActivity extends AppCompatActivity
                 Order.evaluate(this, order);
                 break;
             case 2:
-                sales.setVisibility(View.VISIBLE);
-                Sales.evaluate(this, sales);
+                salesStore.setVisibility(View.VISIBLE);
+                Sales.evaluate(this, salesStore);
                 break;
             case 3:
                 returns.setVisibility(View.VISIBLE);
@@ -241,19 +244,15 @@ public class LandingActivity extends AppCompatActivity
                 break;
             case 4:
                 customer.setVisibility(View.VISIBLE);
-                Customer.evaluate(LandingActivity.this, customer);
+                new Customer().evaluate(LandingActivity.this, customer);
                 break;
             case 5:
                 salesMan.setVisibility(View.VISIBLE);
-                Man.evaluate(this, salesMan);
+                new Man().evaluate(this, salesMan);
                 break;
             case 6:
                 setup.setVisibility(View.VISIBLE);
-                Setup.evaluate(this, setup);
-                break;
-            case 7:
-                salesStore.setVisibility(View.VISIBLE);
-                SalesStore.evaluate(this, salesStore);
+                new Setup().evaluate(this, setup);
                 break;
         }
     }
@@ -281,7 +280,7 @@ public class LandingActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
@@ -305,6 +304,16 @@ public class LandingActivity extends AppCompatActivity
 
     @Override
     public void getCustomer(HashMap<String, Object> customer) {
+        switchScreen();
+    }
+
+    @Override
+    public void getSalesMan(HashMap<String, Object> salesMan) {
+        switchScreen();
+    }
+
+    @Override
+    public void getProductsListener(HashMap<String, Object> customer) {
         switchScreen();
     }
 }

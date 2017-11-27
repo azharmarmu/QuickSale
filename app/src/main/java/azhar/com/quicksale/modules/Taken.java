@@ -9,7 +9,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.DatePicker;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import java.text.ParseException;
@@ -24,7 +23,7 @@ import java.util.List;
 import azhar.com.quicksale.R;
 import azhar.com.quicksale.activity.SetTakenActivity;
 import azhar.com.quicksale.adapter.TakenAdapter;
-import azhar.com.quicksale.api.FireBaseAPI;
+import azhar.com.quicksale.api.TakenApi;
 import azhar.com.quicksale.model.TakenModel;
 
 /**
@@ -40,7 +39,7 @@ public class Taken {
     public static void evaluate(final Context context, View itemView) {
 
         try {
-            final EditText datePicker = itemView.findViewById(R.id.et_date_picker);
+            final TextView datePicker = itemView.findViewById(R.id.et_date_picker);
 
             Date currentDate = new Date();
             Calendar calendar = new GregorianCalendar();
@@ -50,9 +49,11 @@ public class Taken {
             int day = calendar.get(Calendar.DAY_OF_MONTH);
 
             if (month <= 9) {
-                datePicker.setText(day + "/" + "0" + (month) + "/" + year);
+                datePicker.setText("");
+                datePicker.append(day + "/" + "0" + (month) + "/" + year);
             } else {
-                datePicker.setText(day + "/" + (month) + "/" + year);
+                datePicker.setText("");
+                datePicker.append(day + "/" + (month) + "/" + year);
             }
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
             Date pickedDate = formatter.parse(datePicker.getText().toString());
@@ -68,7 +69,7 @@ public class Taken {
     }
 
     private static void changeMapToList(Context context, View itemView, Date pickedDate) {
-        HashMap<String, Object> taken = FireBaseAPI.taken;
+        HashMap<String, Object> taken = TakenApi.taken;
         takenList = new ArrayList<>();
         if (taken != null) {
             for (String key : taken.keySet()) {
@@ -89,7 +90,7 @@ public class Taken {
 
     @SuppressLint("SimpleDateFormat")
     private static void datePicker(final Context context, final View itemView) {
-        final EditText datePicker = itemView.findViewById(R.id.et_date_picker);
+        final TextView datePicker = itemView.findViewById(R.id.et_date_picker);
 
         datePicker.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,13 +120,16 @@ public class Taken {
                                     Date currentDate = formatter.parse((cDay + "-" + cMonth + "-" + cYear));
                                     if (pickedDate.compareTo(currentDate) <= 0) {
                                         if ((monthOfYear + 1) <= 9) {
-                                            datePicker.setText(dayOfMonth + "/0" + (monthOfYear + 1) + "/" + year);
+                                            datePicker.setText("");
+                                            datePicker.append(dayOfMonth + "/0" + (monthOfYear + 1) + "/" + year);
                                         } else {
-                                            datePicker.setText(dayOfMonth + "/" +(monthOfYear + 1) + "/" + year);
+                                            datePicker.setText("");
+                                            datePicker.append(dayOfMonth + "/" +(monthOfYear + 1) + "/" + year);
                                         }
                                         datePicker.clearFocus();
                                         changeMapToList(context, itemView, pickedDate);
                                     } else {
+                                        datePicker.setText("");
                                         datePicker.setError("Choose Valid date");
                                     }
                                 } catch (ParseException e) {

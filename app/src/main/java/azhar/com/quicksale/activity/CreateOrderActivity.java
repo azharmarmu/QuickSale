@@ -1,32 +1,22 @@
 package azhar.com.quicksale.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.InputType;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.Serializable;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import azhar.com.quicksale.R;
-import azhar.com.quicksale.api.FireBaseAPI;
-import azhar.com.quicksale.utils.Constants;
+import azhar.com.quicksale.api.CustomerApi;
 
 
 @SuppressWarnings({"unchecked", "deprecation"})
@@ -48,20 +38,20 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_order);
 
-        salesManListView = findViewById(R.id.sales_man_list);
+        /*salesManListView = findViewById(R.id.sales_man_list);
         customerName = findViewById(R.id.et_customer_name);
         customerGst = findViewById(R.id.et_customer_gst);
         customerAddress = findViewById(R.id.et_customer_address);
         tableLayout = findViewById(R.id.table_layout);
         isOrderEdit(getIntent().getExtras());
-        getCustomerDetails();
+        getCustomerDetails();*/
     }
 
     private void getCustomerDetails() {
         final List<String> custName = new ArrayList<>();
         final List<String> custGST = new ArrayList<>();
         final List<String> custAddress = new ArrayList<>();
-        HashMap<String, Object> customer = FireBaseAPI.customer;
+        HashMap<String, Object> customer = CustomerApi.customer;
         if (customer.size() > 0) {
             for (String key : customer.keySet()) {
                 HashMap<String, Object> customerDetails = (HashMap<String, Object>) customer.get(key);
@@ -82,7 +72,7 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
         });
     }
 
-    private void isOrderEdit(Bundle extras) {
+    /*private void isOrderEdit(Bundle extras) {
         if (extras != null) {
             key = extras.getString("key");
             orderMap = (HashMap<String, Object>) FireBaseAPI.order.get(key);
@@ -121,10 +111,10 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
     }
 
     private void populateItemsDetails() {
-        HashMap<String, Object> products = FireBaseAPI.productPrice;
+        HashMap<String, Object> products = ProductsApi.productPrice;
 
         for (String prodKey : products.keySet()) {
-            /* Create a TableRow dynamically */
+            *//* Create a TableRow dynamically *//*
             TableRow tr = new TableRow(this);
             tr.setBackground(getResources().getDrawable(R.drawable.box_white));
             tr.setLayoutParams(new TableRow.LayoutParams(
@@ -132,13 +122,13 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
                     TableRow.LayoutParams.MATCH_PARENT));
             tr.setWeightSum(2);
 
-            /*Params*/
+            *//*Params*//*
             TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT);
             params.weight = 1.0f;
 
 
-            /* Product Name --> TextView */
+            *//* Product Name --> TextView *//*
             TextView productName = new TextView(this);
             productName.setLayoutParams(params);
 
@@ -149,7 +139,7 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
             productName.setGravity(Gravity.CENTER);
             tr.addView(productName);
 
-            /* Product QTY --> EditText */
+            *//* Product QTY --> EditText *//*
             EditText productQTY = new EditText(this);
             productQTY.setLayoutParams(params);
 
@@ -248,6 +238,6 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
             }
             finish();
         }
-    }
+    }*/
 }
 

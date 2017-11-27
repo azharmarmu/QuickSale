@@ -17,9 +17,9 @@ import java.util.List;
 
 import azhar.com.quicksale.R;
 import azhar.com.quicksale.adapter.SalesManAdapter;
-import azhar.com.quicksale.api.FireBaseAPI;
-import azhar.com.quicksale.utils.Constants;
+import azhar.com.quicksale.api.SalesManApi;
 import azhar.com.quicksale.model.SalesManModel;
+import azhar.com.quicksale.utils.Constants;
 
 /**
  * Created by azharuddin on 26/7/17.
@@ -36,7 +36,7 @@ public class SalesManActivity extends AppCompatActivity implements Serializable 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sales_man);
 
-        salesMan = FireBaseAPI.salesMan;
+        salesMan = SalesManApi.salesMan;
 
         //// TODO: 26/7/17 checkIn correction
 
