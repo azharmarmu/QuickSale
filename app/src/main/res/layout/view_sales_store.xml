@@ -21,48 +21,80 @@
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
             android:textColor="@color/colorLightBlack" />
 
-
-        <RelativeLayout
-            android:id="@+id/spinner_layout1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/box_white_thick_border_corner_ripple">
-
-            <Spinner
-                android:id="@+id/spinner1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clickable="true"
-                android:padding="16dp" />
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/spinner_layout2"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@drawable/box_white_thick_border_corner_ripple">
+            android:orientation="horizontal"
+            android:weightSum="2">
 
-            <Spinner
-                android:id="@+id/spinner2"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tvPartyTAG"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:clickable="true"
-                android:padding="16dp" />
-        </RelativeLayout>
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/box_primary_corner"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="Party" />
 
-        <RelativeLayout
-            android:id="@+id/spinner_layout3"
+            <TextView
+                android:id="@+id/tvProductTAG"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/box_white_thick_border_corner_ripple"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="Product" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@drawable/box_white_thick_border_corner_ripple">
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <TextView
+                android:id="@+id/tvAllTAG"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/box_primary_corner"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="All" />
+
+            <TextView
+                android:id="@+id/tvRouteTAG"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/box_white_thick_border_corner_ripple"
+                android:gravity="center"
+                android:padding="10dp"
+                android:text="Route" />
+        </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/spinner_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/box_white_thick_border_corner_ripple"
+            android:visibility="gone">
 
             <Spinner
-                android:id="@+id/spinner3"
+                android:id="@+id/spinner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clickable="true"
+                android:focusable="true"
                 android:padding="16dp" />
         </RelativeLayout>
 

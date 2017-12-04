@@ -56,7 +56,7 @@ public class SalesManActivity extends AppCompatActivity implements Serializable 
 
     private void populateSalesManList() {
         SalesManAdapter adapter = new SalesManAdapter(getApplicationContext(), salesManList, Constants.CHECK);
-        RecyclerView takenView = (RecyclerView) findViewById(R.id.rv_sales_man);
+        RecyclerView takenView = findViewById(R.id.rv_sales_man);
         takenView.removeAllViews();
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         takenView.setLayoutManager(layoutManager);

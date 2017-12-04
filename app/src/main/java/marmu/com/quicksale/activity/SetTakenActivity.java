@@ -43,9 +43,9 @@ public class SetTakenActivity extends AppCompatActivity implements Serializable 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_set_taken);
 
-        salesManListView = (TextView) findViewById(R.id.sales_man_list);
-        route = (EditText) findViewById(R.id.et_route_name);
-        tableLayout = (TableLayout) findViewById(R.id.table_layout);
+        salesManListView = findViewById(R.id.sales_man_list);
+        route = findViewById(R.id.et_route_name);
+        tableLayout = findViewById(R.id.table_layout);
         isTakenEdit(getIntent().getExtras());
     }
 
@@ -72,11 +72,11 @@ public class SetTakenActivity extends AppCompatActivity implements Serializable 
     }
 
     private void viewTaken() {
-        TextView salesManTextView = (TextView) findViewById(R.id.sales_man);
+        TextView salesManTextView = findViewById(R.id.sales_man);
         salesManTextView.setClickable(false);
         route.setEnabled(false);
         tableLayout.setEnabled(false);
-        Button createOrder = (Button) findViewById(R.id.btn_taken_set);
+        Button createOrder = findViewById(R.id.btn_taken_set);
         createOrder.setVisibility(View.GONE);
     }
 
@@ -191,9 +191,9 @@ public class SetTakenActivity extends AppCompatActivity implements Serializable 
         } else {
             HashMap<String, Object> taken = new HashMap<>();
             taken.put("process", "start");
-            taken.put("sales_date", Constants.currentDate());
+            taken.put("date", Constants.currentDate());
             taken.put("sales_man_name", salesMan);
-            taken.put("sales_route", localSalesRoute);
+            taken.put("route", localSalesRoute);
             taken.put("sales_order_qty", takenItems);
             taken.put("sales_order_qty_left", takenItems);
             if (key == null) {

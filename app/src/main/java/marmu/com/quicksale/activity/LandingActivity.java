@@ -33,10 +33,10 @@ import marmu.com.quicksale.modules.Customer;
 import marmu.com.quicksale.modules.Man;
 import marmu.com.quicksale.modules.Order;
 import marmu.com.quicksale.modules.Return;
-import marmu.com.quicksale.modules.Sales;
 import marmu.com.quicksale.modules.SalesStore;
 import marmu.com.quicksale.modules.Setup;
 import marmu.com.quicksale.modules.Taken;
+import marmu.com.quicksale.utils.DialogUtils;
 
 public class LandingActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, CustomerListener {
@@ -225,7 +225,7 @@ public class LandingActivity extends AppCompatActivity
         switch (whereIam) {
             case 0:
                 taken.setVisibility(View.VISIBLE);
-                Taken.evaluate(this, taken);
+                new Taken().evaluate(this, taken);
                 break;
             case 1:
                 order.setVisibility(View.VISIBLE);
@@ -233,7 +233,7 @@ public class LandingActivity extends AppCompatActivity
                 break;
             case 2:
                 sales.setVisibility(View.VISIBLE);
-                Sales.evaluate(this, sales);
+                DialogUtils.appToastShort(this, "Deprecated --> will be removed");
                 break;
             case 3:
                 returns.setVisibility(View.VISIBLE);
@@ -253,7 +253,7 @@ public class LandingActivity extends AppCompatActivity
                 break;
             case 7:
                 salesStore.setVisibility(View.VISIBLE);
-                SalesStore.evaluate(this, salesStore);
+                new SalesStore().evaluate(this, salesStore);
                 break;
         }
     }

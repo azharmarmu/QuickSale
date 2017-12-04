@@ -5,11 +5,16 @@ package marmu.com.quicksale.model;
  */
 
 public class SalesManModel {
-    private String name, phone;
+    private String key,name, phone;
 
-    public SalesManModel(String name, String phone) {
+    public SalesManModel(String key,String name, String phone) {
+        this.key = key;
         this.name = name;
         this.phone = phone;
+    }
+
+    public String getKey() {
+        return key;
     }
 
     public String getName() {

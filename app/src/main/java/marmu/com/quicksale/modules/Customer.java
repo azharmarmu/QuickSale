@@ -1,6 +1,6 @@
 package marmu.com.quicksale.modules;
 
-import android.content.Context;
+import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import marmu.com.quicksale.R;
+import marmu.com.quicksale.activity.LandingActivity;
 import marmu.com.quicksale.adapter.CustomerAdapter;
 import marmu.com.quicksale.api.FireBaseAPI;
 import marmu.com.quicksale.model.CustomerModel;
@@ -28,17 +29,22 @@ import marmu.com.quicksale.utils.DialogUtils;
 
 @SuppressWarnings("unchecked")
 public class Customer {
-    private static HashMap<String, Object> customer = new HashMap<>();
-    private static List<CustomerModel> customerList;
+    private HashMap<String, Object> customer = new HashMap<>();
+    private List<CustomerModel> customerList;
 
-    public static void evaluate(Context context, View itemView) {
+    private Activity activity;
+    private View itemView;
+    public void evaluate(LandingActivity activity, View itemView) {
+        this.activity = activity;
+        this.itemView = itemView;
+        
         customer = FireBaseAPI.customer;
         changeMapToList();
-        populateCustomer(context, itemView);
-        addCustomer(context, itemView);
+        populateCustomer();
+        addCustomer();
     }
 
-    private static void changeMapToList() {
+    private void changeMapToList() {
         customerList = new ArrayList<>();
         if (customer != null) {
             for (String key : customer.keySet()) {
@@ -51,17 +57,17 @@ public class Customer {
         }
     }
 
-    private static void populateCustomer(Context context, View itemView) {
-        CustomerAdapter adapter = new CustomerAdapter(context, customerList);
+    private void populateCustomer() {
+        CustomerAdapter adapter = new CustomerAdapter(activity, customerList);
         RecyclerView customerView = itemView.findViewById(R.id.rv_customer);
         customerView.removeAllViews();
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(activity);
         customerView.setLayoutManager(layoutManager);
         customerView.setItemAnimator(new DefaultItemAnimator());
         customerView.setAdapter(adapter);
     }
 
-    private static void addCustomer(final Context context, final View itemView) {
+    private void addCustomer() {
         TextView addCustomer = itemView.findViewById(R.id.btn_add_customer);
         addCustomer.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,7 +81,9 @@ public class Customer {
                 String CustomerAddress = address.getText().toString();
                 String CustomerGst = gst.getText().toString();
                 HashMap<String, Object> customerMap = new HashMap<>();
-                if (!CustomerName.isEmpty() && !CustomerAddress.isEmpty() && !CustomerGst.isEmpty()) {
+                if (!CustomerName.isEmpty()
+                        && !CustomerAddress.isEmpty()
+                        && !CustomerGst.isEmpty()) {
                     if (customer.size() > 0) {
                         for (String key : customer.keySet()) {
                             HashMap<String, Object> myCustomer = (HashMap<String, Object>) customer.get(key);
@@ -106,9 +114,9 @@ public class Customer {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
                                         if (task.isSuccessful()) {
-                                            DialogUtils.appToastShort(context, "Customer added");
+                                            DialogUtils.appToastShort(activity, "Customer added");
                                         } else {
-                                            DialogUtils.appToastShort(context, "Customer not added");
+                                            DialogUtils.appToastShort(activity, "Customer not added");
                                         }
                                     }
                                 });
