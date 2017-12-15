@@ -24,4 +24,10 @@
     <string name="create">Create</string>
     <string name="sales_store">Sales (store)</string>
     <string name="sales_deprecated">Sales - deprecated</string>
+    <string name="edit">Edit</string>
+    <string name="view">View</string>
+    <string name="nil">NIL</string>
+    <string name="loading">Loading…</string>
+    <string name="result">Result</string>
+    <string name="dateformat">dd-MM-yyyy</string>
 </resources>

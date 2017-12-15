@@ -228,7 +228,7 @@ public class LandingActivity extends AppCompatActivity
         switch (whereIam) {
             case 0:
                 taken.setVisibility(View.VISIBLE);
-                Taken.evaluate(this, taken);
+                new Taken().evaluate(this, taken);
                 break;
             case 1:
                 order.setVisibility(View.VISIBLE);
@@ -236,7 +236,7 @@ public class LandingActivity extends AppCompatActivity
                 break;
             case 2:
                 salesStore.setVisibility(View.VISIBLE);
-                Sales.evaluate(this, salesStore);
+                new Sales().evaluate(this, salesStore);
                 break;
             case 3:
                 returns.setVisibility(View.VISIBLE);

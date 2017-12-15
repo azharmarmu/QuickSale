@@ -49,14 +49,17 @@ public class SalesManActivity extends AppCompatActivity implements Serializable 
     private void changeMapToList() {
         if (salesMan != null) {
             for (String key : salesMan.keySet()) {
-                salesManList.add(new SalesManModel(key, (String) salesMan.get(key)));
+                HashMap<String, Object> salesManDetails = (HashMap<String, Object>) salesMan.get(key);
+                salesManList.add(new SalesManModel(key,
+                        (String) salesManDetails.get(Constants.SALES_MAN_PHONE),
+                        (String) salesManDetails.get(Constants.SALES_MAN_NAME)));
             }
         }
     }
 
     private void populateSalesManList() {
         SalesManAdapter adapter = new SalesManAdapter(getApplicationContext(), salesManList, Constants.CHECK);
-        RecyclerView takenView = (RecyclerView) findViewById(R.id.rv_sales_man);
+        RecyclerView takenView = findViewById(R.id.rv_sales_man);
         takenView.removeAllViews();
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         takenView.setLayoutManager(layoutManager);
@@ -68,7 +71,7 @@ public class SalesManActivity extends AppCompatActivity implements Serializable 
         List<String> salesMan = SalesManAdapter.getSelectedSalesMan();
         if (salesMan.size() > 0) {
             Intent intent = new Intent();
-            intent.putExtra("salesMan", (Serializable) salesMan);
+            intent.putExtra(Constants.SALES_MAN, (Serializable) salesMan);
             setResult(Constants.SALES_MAN_CODE, intent);
             finish();
         } else {

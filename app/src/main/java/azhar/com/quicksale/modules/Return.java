@@ -12,18 +12,14 @@ import android.widget.EditText;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
 
 import azhar.com.quicksale.R;
 import azhar.com.quicksale.adapter.ReturnAdapter;
-import azhar.com.quicksale.api.TakenApi;
 import azhar.com.quicksale.model.TakenModel;
-import azhar.com.quicksale.utils.Constants;
 
 /**
  * Created by azharuddin on 25/7/17.
@@ -64,7 +60,7 @@ public class Return {
     }
 
     private static void changeMapToList(Context context, View itemView, Date pickedDate) {
-        HashMap<String, Object> taken = TakenApi.taken;
+        /*HashMap<String, Object> taken = TakenApi.taken;
         returnList = new ArrayList<>();
         if (taken != null) {
             for (String key : taken.keySet()) {
@@ -81,7 +77,7 @@ public class Return {
                 }
             }
         }
-        populateReturn(context, itemView);
+        populateReturn(context, itemView);*/
     }
 
     @SuppressLint("SimpleDateFormat")

@@ -9,11 +9,12 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
 import azhar.com.quicksale.api.AdminApi;
+import azhar.com.quicksale.api.BillNoApi;
 import azhar.com.quicksale.api.CompanyApi;
 import azhar.com.quicksale.api.CustomerApi;
+import azhar.com.quicksale.api.OrderNoApi;
 import azhar.com.quicksale.api.ProductsApi;
 import azhar.com.quicksale.api.SalesManApi;
-import azhar.com.quicksale.api.TakenApi;
 import azhar.com.quicksale.utils.Constants;
 
 
@@ -35,9 +36,10 @@ public class SplashActivity extends AppCompatActivity {
 
         new CompanyApi().getCompany(); //calling company details Api
         new AdminApi().getAdmin(); //calling admin details Api
-        new TakenApi().getTaken(); //calling taken details Api
         new SalesManApi().getSalesMan(); //calling salesman Api
         new CustomerApi().getCustomer(); //calling Customer Api
+        new BillNoApi().getBillNo(); //calling BillNo Api
+        new OrderNoApi().getOrderNo(); //calling OrderNo Api
         new ProductsApi().getProducts(); //calling Products Api
 
         new Handler().postDelayed(new Runnable() {

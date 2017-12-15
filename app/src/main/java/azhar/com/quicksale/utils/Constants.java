@@ -19,15 +19,18 @@ public class Constants {
     public static final String ENV = "development";
     //public static final String ENV = "production";
 
+    public static final String KEY = "key";
+
+    /*Table Name*/
     public static final String USERS = "users";
     public static final String COMPANY = "company";
-    public static final String ADMIN_TAKEN = "taken";
+    public static final String TAKEN = "taken";
     public static final String ADMIN = "admin";
-    public static final String ADMIN_ORDER = "order";
+    public static final String ORDER = "order";
     public static final String PRODUCTS = "products";
     public static final String SALES_MAN = "sales_man";
     public static final String CUSTOMER = "customer";
-    public static final String SALES_MAN_BILLING = "billing";
+    public static final String BILLING = "billing";
 
     public static final String EDIT = "edit";
     public static final String CHECK = "check";
@@ -45,6 +48,63 @@ public class Constants {
     public static final String STARTED = "started";
 
     public static final String UPDATE = "update";
+
+    /*SalesMan-Table*/
+    public static final String SALES_MAN_NAME = "sales_man_name";
+    public static final String SALES_MAN_PHONE = "sales_man_phone";
+
+    /*Taken-Table Store*/
+    public static final String TAKEN_ID = "_id";
+    public static final String TAKEN_PROCESS = "process";
+    public static final String TAKEN_DATE = "date";
+    public static final String TAKEN_SALES = "sales";
+    public static final String TAKEN_SALES_MAN_NAME = "salesManName";
+    public static final String TAKEN_SALES_QTY = "qty";
+    public static final String TAKEN_SALES_QTY_STOCK = "qtyStock";
+    public static final String TAKEN_SALES_PRODUCT_NAME = "name";
+    public static final String TAKEN_ROUTE = "route";
+
+    /*Products-Table*/
+    public static final String PRODUCT_NAME = "name";
+    public static final String PRODUCT_HSN = "hsn";
+    public static final String PRODUCT_RATE = "rate";
+
+    /*Customer-Table*/
+    public static final String CUSTOMER_NAME = "customer_name";
+    public static final String CUSTOMER_ADDRESS = "customer_address";
+    public static final String CUSTOMER_GST = "customer_gst";
+
+    /*Billing-Table store*/
+    public static final String BILL_ID = "_id";
+    public static final String BILL_DATE = "date";
+    public static final String BILL_NO = "billNo";
+    public static final String BILL_SALES_MAN_NAME = "salesManName";
+    public static final String BILL_CUSTOMER = "customer";
+    public static final String BILL_SALES = "sales";
+    public static final String BILL_SALES_PRODUCT_NAME = "name";
+    public static final String BILL_SALES_PRODUCT_QTY = "qty";
+    public static final String BILL_SALES_PRODUCT_RATE = "rate";
+    public static final String BILL_SALES_PRODUCT_HSN = "hsn";
+    public static final String BILL_SALES_PRODUCT_TOTAL = "total";
+    public static final String BILL_NET_TOTAL = "netTotal";
+    public static final String BILL_ROUTE = "route";
+    public static final String BILL_AMOUNT_RECEIVED = "amountReceived";
+
+    /*Order-Table store*/
+    public static final String ORDER_ID = "_id";
+    public static final String ORDER_PROCESS = "process";
+    public static final String ORDER_DATE = "date";
+    public static final String ORDER_NO = "orderNo";
+    public static final String ORDER_SALES_MAN_NAME = "salesManName";
+    public static final String ORDER_CUSTOMER = "customer";
+    public static final String ORDER_CUSTOMER_NAME = "customer_name";
+    public static final String ORDER_CUSTOMER_GST = "customer_gst";
+    public static final String ORDER_SALES = "sales";
+    public static final String ORDER_SALES_PRODUCT_NAME = "name";
+    public static final String ORDER_SALES_PRODUCT_QTY = "qty";
+    public static final String ORDER_SALES_PRODUCT_RATE = "rate";
+    public static final String ORDER_SALES_PRODUCT_HSN = "hsn";
+    public static final String ORDER_SALES_PRODUCT_TOTAL = "total";
 
 
     @SuppressLint("SimpleDateFormat")

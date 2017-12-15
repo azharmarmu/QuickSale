@@ -16,6 +16,7 @@ import java.util.HashMap;
 
 import azhar.com.quicksale.R;
 import azhar.com.quicksale.api.SalesManApi;
+import azhar.com.quicksale.utils.Constants;
 import azhar.com.quicksale.utils.DialogUtils;
 
 @SuppressWarnings("unchecked")
@@ -54,8 +55,8 @@ public class addSalesManFragment extends Fragment {
                 if (!salesManName.isEmpty()
                         && !salesManPhone.isEmpty()) {
                     if (!salesMan.containsKey(salesManPhone)) {
-                        salesMan.put("sales_man_name", salesManName);
-                        salesMan.put("sales_man_phone", salesManPhone);
+                        salesMan.put(Constants.SALES_MAN_NAME, salesManName);
+                        salesMan.put(Constants.SALES_MAN_PHONE, salesManPhone);
                         name.setText("");
                         phone.setText("");
                         SalesManApi.salesManDBRef.child(salesManPhone)

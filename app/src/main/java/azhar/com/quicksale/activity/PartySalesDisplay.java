@@ -1,6 +1,6 @@
 package azhar.com.quicksale.activity;
 
-import android.content.Context;
+
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -13,16 +13,10 @@ import android.widget.TextView;
 import java.util.HashMap;
 
 import azhar.com.quicksale.R;
+import azhar.com.quicksale.utils.Constants;
 
 @SuppressWarnings("unchecked")
 public class PartySalesDisplay extends AppCompatActivity {
-
-    int cashReceived = 0;
-    int partiesNetTotal = 0;
-    String partyName, partyBillNo, partyBillDate, partyGST;
-    HashMap<String, Object> partiesItems = new HashMap<>();
-    HashMap<String, Object> partiesItemsRate = new HashMap<>();
-    HashMap<String, Object> partiesItemsTotal = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,56 +24,52 @@ public class PartySalesDisplay extends AppCompatActivity {
         setContentView(R.layout.activity_party_sales_display);
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            partyName = bundle.getString("party_name");
-            partiesNetTotal = bundle.getInt("net_total");
-            partiesItems = (HashMap<String, Object>) bundle.getSerializable("items_qty");
-            partiesItemsRate = (HashMap<String, Object>) bundle.getSerializable("items_rate");
-            partiesItemsTotal = (HashMap<String, Object>) bundle.getSerializable("items_total");
-            partiesItemsTotal = (HashMap<String, Object>) bundle.getSerializable("items_total");
-            partyBillNo = bundle.getString("party_bill_no");
-            partyBillDate = bundle.getString("party_bill_date");
-            cashReceived = bundle.getInt("amount_received");
-            if (bundle.containsKey("party_gst")) {
-                partyGST = bundle.getString("party_gst");
-            } else {
-                partyGST = "NIL";
+            HashMap<String, Object> partySalesDisplay = (HashMap<String, Object>) bundle.getSerializable(Constants.BILL_SALES);
+
+            if (partySalesDisplay != null) {
+                HashMap<String, Object> items = (HashMap<String, Object>) partySalesDisplay.get(Constants.BILL_SALES);
+                HashMap<String, Object> party = (HashMap<String, Object>) partySalesDisplay.get(Constants.BILL_CUSTOMER);
+
+                TextView tvPartyName = findViewById(R.id.sales_man_list);
+                tvPartyName.setText(party.get(Constants.CUSTOMER_GST).toString());
+                if (party.containsKey(Constants.CUSTOMER_GST)) {
+                    TextView tvPartyGST = findViewById(R.id.gst);
+                    tvPartyGST.append("GSTIN: " + party.get(Constants.CUSTOMER_GST));
+                }
+
+                TextView tvPartyBillDate = findViewById(R.id.party_bill_date);
+                tvPartyBillDate.append("Date: " + partySalesDisplay.get(Constants.BILL_DATE));
+
+                TextView tvPartyBillNo = findViewById(R.id.party_bill_no);
+                tvPartyBillNo.append("Bill No: " + partySalesDisplay.get(Constants.BILL_NO));
+
+
+                populateTable(items);
+
+                TextView total = findViewById(R.id.tv_sales_total);
+                total.setText(String.valueOf(partySalesDisplay.get(Constants.BILL_NET_TOTAL)));
+
+                TextView amountReceived = findViewById(R.id.tv_amount_received);
+                amountReceived.setText("");
+                amountReceived.append("Amount received: " + String.valueOf(partySalesDisplay.get(Constants.BILL_AMOUNT_RECEIVED)));
+
+                TextView balanceAmount = findViewById(R.id.tv_balance_amount);
+                balanceAmount.setText("");
+                balanceAmount.append("Balance Amount: " +
+                        (Integer.parseInt(partySalesDisplay.get(Constants.BILL_NET_TOTAL).toString()) -
+                                Integer.parseInt(partySalesDisplay.get(Constants.BILL_AMOUNT_RECEIVED).toString())));
             }
-
-            TextView tvPartyName = findViewById(R.id.sales_man_list);
-            tvPartyName.setText(partyName);
-
-            TextView tvPartyBillDate = findViewById(R.id.party_bill_date);
-            tvPartyBillDate.append("Date: " + partyBillDate);
-
-            TextView tvPartyBillNo = findViewById(R.id.party_bill_no);
-            tvPartyBillNo.append("Bill No: " + partyBillNo);
-
-            TextView tvPartyGST = findViewById(R.id.gst);
-            tvPartyGST.append("GSTIN: " + partyGST);
-
-            populateTable(getApplicationContext());
-
-            TextView total = findViewById(R.id.tv_sales_total);
-            total.setText(String.valueOf(partiesNetTotal));
-
-            TextView amountReceived = findViewById(R.id.tv_amount_received);
-            amountReceived.setText("");
-            amountReceived.append("Amount received: " + String.valueOf(cashReceived));
-
-            TextView balanceAmount = findViewById(R.id.tv_balance_amount);
-            balanceAmount.setText("");
-            balanceAmount.append("Balance Amount: " + (partiesNetTotal - cashReceived));
-
         }
+
     }
 
-    private void populateTable(Context context) {
+    private void populateTable(HashMap<String, Object> items) {
         TableLayout tableLayout = findViewById(R.id.table_layout);
         tableLayout.removeAllViews();
-        for (final String prodKey : partiesItems.keySet()) {
+        for (final String prodKey : items.keySet()) {
             /* Create a TableRow dynamically */
-            TableRow tr = new TableRow(context);
-            tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
+            TableRow tr = new TableRow(this);
+            tr.setBackground(ContextCompat.getDrawable(this, R.drawable.box_white));
 
             tr.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT,
@@ -94,43 +84,46 @@ public class PartySalesDisplay extends AppCompatActivity {
             params.weight = 1.0f;
 
 
+            HashMap<String, Object> itemDetails = (HashMap<String, Object>) items.get(prodKey);
+
+
             /* Product Name --> TextView */
-            TextView name = new TextView(context);
+            TextView name = new TextView(this);
             name.setLayoutParams(params);
 
-            name.setTextColor(ContextCompat.getColor(context, R.color.colorLightBlack));
+            name.setTextColor(ContextCompat.getColor(this, R.color.colorLightBlack));
             name.setPadding(16, 16, 16, 16);
-            name.setText(prodKey);
+            name.setText(itemDetails.get("name").toString());
             name.setGravity(Gravity.CENTER);
             tr.addView(name);
 
             /* Product QTY --> TextView */
-            TextView salesMan = new TextView(context);
+            TextView salesMan = new TextView(this);
             salesMan.setLayoutParams(params);
 
-            salesMan.setTextColor(ContextCompat.getColor(context, R.color.colorLightBlack));
+            salesMan.setTextColor(ContextCompat.getColor(this, R.color.colorLightBlack));
             salesMan.setPadding(16, 16, 16, 16);
-            salesMan.setText(partiesItems.get(prodKey).toString());
+            salesMan.setText(itemDetails.get("qty").toString());
             salesMan.setGravity(Gravity.CENTER);
             tr.addView(salesMan);
 
             /* Product Price --> TextView */
-            TextView rate = new TextView(context);
+            TextView rate = new TextView(this);
             rate.setLayoutParams(params);
 
-            rate.setTextColor(ContextCompat.getColor(context, R.color.colorLightBlack));
+            rate.setTextColor(ContextCompat.getColor(this, R.color.colorLightBlack));
             rate.setPadding(16, 16, 16, 16);
-            rate.setText(partiesItemsRate.get(prodKey).toString());
+            rate.setText(itemDetails.get("rate").toString());
             rate.setGravity(Gravity.CENTER);
             tr.addView(rate);
 
-            /* Product Price --> TextView */
-            TextView total = new TextView(context);
+            /* Product total --> TextView */
+            TextView total = new TextView(this);
             total.setLayoutParams(params);
 
-            total.setTextColor(ContextCompat.getColor(context, R.color.colorLightBlack));
+            total.setTextColor(ContextCompat.getColor(this, R.color.colorLightBlack));
             total.setPadding(16, 16, 16, 16);
-            total.setText(partiesItemsTotal.get(prodKey).toString());
+            total.setText(itemDetails.get("total").toString());
             total.setGravity(Gravity.CENTER);
             tr.addView(total); // Adding textView to table-row.
 

@@ -15,7 +15,7 @@ public class FireBaseAPI {
 
     static final DatabaseReference ENVIRONMENT = Constants.DATABASE.getReference(Constants.ENV);
 
-    public static DatabaseReference orderDBRef = Constants.DATABASE.getReference(Constants.ADMIN_ORDER);
+    public static DatabaseReference orderDBRef = Constants.DATABASE.getReference(Constants.ORDER);
 
 
 

@@ -1,9 +1,13 @@
 package azhar.com.quicksale.utils;
 
-import android.content.Context;
+import android.app.Activity;
+import android.app.DownloadManager;
 import android.os.Environment;
 import android.util.Log;
 
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
@@ -20,6 +24,10 @@ import com.itextpdf.text.pdf.PdfWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.HashMap;
+
+import azhar.com.quicksale.R;
+
+import static android.content.Context.DOWNLOAD_SERVICE;
 
 
 /**
@@ -39,28 +47,24 @@ public class GenerateSalesReport {
             Font.BOLD);
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void generateSalesReport(Context context,
-                                    String routeName, String date,
-                                    int cashAmount, int totalBill,
-                                    HashMap<String, Object> partyCustomerName,
-                                    HashMap<String, Object> partiesNetTotal,
-                                    HashMap<String, Object> partiesItems,
-                                    HashMap<String, Object> partiesItemsRate,
-                                    HashMap<String, Object> partiesItemsTotal,
-                                    HashMap<String, Object> partiesBillNo,
-                                    HashMap<String, Object> partiesBillDate,
-                                    HashMap<String, Object> partiesGST,
-                                    HashMap<String, Object> partiesAmountReceived) {
+    public void generateSalesReport(Activity activity, Task<QuerySnapshot> salesTask, String currentRoute, String date) {
         try {
+            DialogUtils.showProgressDialog(activity, activity.getString(R.string.loading));
             File pictureFileDir = new File(Environment.getExternalStorageDirectory(), "QS_POS/reports");
             if (!pictureFileDir.exists()) {
                 boolean isDirectoryCreated = pictureFileDir.mkdirs();
                 if (!isDirectoryCreated)
                     Log.i("ATG", "Can't create directory to save the image");
             }
-            routeName = routeName.replace("/", "-");
+
+            if (currentRoute == null || currentRoute.isEmpty() || currentRoute.equals("")) {
+                currentRoute = Constants.ALL;
+            }
+
+            currentRoute = currentRoute.replace("/", "-");
             date = date.replace("/", "-");
-            String filename = pictureFileDir.getPath() + File.separator + routeName + "_" + date + ".pdf";
+
+            String filename = pictureFileDir.getPath() + File.separator + currentRoute + "_" + date + ".pdf";
             File pdfFile = new File(filename);
             pdfFile.createNewFile();
             FileOutputStream oStream = new FileOutputStream(pdfFile);
@@ -72,43 +76,75 @@ public class GenerateSalesReport {
             paragraph.setAlignment(Element.ALIGN_CENTER);
             document.add(paragraph);
 
-            paragraph = new Paragraph(routeName + ":" + date, catFont);
+            paragraph = new Paragraph(currentRoute + ":" + date, catFont);
             paragraph.setAlignment(Element.ALIGN_CENTER);
             document.add(paragraph);
-
             paragraph = new Paragraph("\n");
             document.add(paragraph);
-            for (String key : partyCustomerName.keySet()) {
-                document.add(createHeaderTable(
-                        partiesBillNo.get(key).toString(),
-                        partyCustomerName.get(key).toString() + "\n" + partiesGST.get(key).toString(),
-                        partiesBillDate.get(key).toString()
-                ));
-                HashMap<String, Object> itemsQty = (HashMap<String, Object>) partiesItems.get(key);
-                HashMap<String, Object> itemsRate = (HashMap<String, Object>) partiesItemsRate.get(key);
-                HashMap<String, Object> itemsTotal = (HashMap<String, Object>) partiesItemsTotal.get(key);
-                for (String itemName : itemsQty.keySet()) {
-                    document.add(createBodyTable(
-                            itemName,
-                            itemsQty.get(itemName).toString(),
-                            itemsRate.get(itemName).toString(),
-                            itemsTotal.get(itemName).toString()));
+
+            int cashAmount = 0;
+            int totalBill = 0;
+            for (final DocumentSnapshot documentSnapshot : salesTask.getResult()) {
+                HashMap<String, Object> items = (HashMap<String, Object>) documentSnapshot.get(Constants.BILL_SALES);
+                HashMap<String, Object> customer = (HashMap<String, Object>) documentSnapshot.get(Constants.BILL_CUSTOMER);
+
+
+                String billNo = documentSnapshot.get(Constants.BILL_NO).toString();
+                String billDate = documentSnapshot.get(Constants.BILL_DATE).toString();
+                String billRoute = documentSnapshot.get(Constants.BILL_ROUTE).toString();
+                String billAmountReceived = "0";
+                if (documentSnapshot.contains(Constants.BILL_AMOUNT_RECEIVED)) {
+                    billAmountReceived = documentSnapshot.get(Constants.BILL_AMOUNT_RECEIVED).toString();
+                    cashAmount += Integer.parseInt(billAmountReceived);
                 }
-                document.add(createFooterTable(
-                        Integer.parseInt(partiesNetTotal.get(key).toString()),
-                        Integer.parseInt(partiesAmountReceived.get(key).toString())
+                String billNetTotal = "0";
+                if (documentSnapshot.contains(Constants.BILL_NET_TOTAL)) {
+                    billNetTotal = documentSnapshot.get(Constants.BILL_NET_TOTAL).toString();
+                    totalBill += Integer.parseInt(billNetTotal);
+                }
+                /*Header*/
+                String customerDetails = customer.get(Constants.CUSTOMER_NAME).toString() + "\n" +
+                        customer.get(Constants.CUSTOMER_GST).toString();
+
+                document.add(createHeaderTable(billNo, customerDetails, billDate));
+
+                /*Body*/
+                for (String itemName : items.keySet()) {
+                    HashMap<String, Object> itemDetails = (HashMap<String, Object>) items.get(itemName);
+                    document.add(createBodyTable(
+                            itemDetails.get(Constants.BILL_SALES_PRODUCT_NAME).toString(),
+                            itemDetails.get(Constants.BILL_SALES_PRODUCT_QTY).toString(),
+                            itemDetails.get(Constants.BILL_SALES_PRODUCT_RATE).toString(),
+                            itemDetails.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString()));
+                }
+
+                /*Footer*/
+                document.add(createFooterTable(Integer.parseInt(billNetTotal), Integer.parseInt(billAmountReceived)
                 ));
             }
+
+
             document.add(paragraph);
             document.add(createTotalTable(totalBill, cashAmount));
             document.close();
-            Log.e("FileGenerated", routeName + "-" + date + ".pdf");
-            DialogUtils.appToastShort(context, "Report generated!!");
+            Log.e("FileGenerated", currentRoute + "-" + date + ".pdf");
+
+            DialogUtils.dismissProgressDialog();
+            DialogUtils.appToastShort(activity, "Report generated!!");
+
+            DownloadManager downloadManager = (DownloadManager) activity.getSystemService(DOWNLOAD_SERVICE);
+
+            assert downloadManager != null;
+            downloadManager.addCompletedDownload(pdfFile.getName(), pdfFile.getName(),
+                    true, "application/pdf",
+                    pdfFile.getAbsolutePath(), pdfFile.length(),
+                    true);
 
             oStream.flush();
             oStream.close();
+
         } catch (Exception e) {
-            DialogUtils.appToastShort(context, "Report generating failed");
+            DialogUtils.appToastShort(activity, "Report generating failed");
             Log.e("Error", e.getMessage());
         }
     }

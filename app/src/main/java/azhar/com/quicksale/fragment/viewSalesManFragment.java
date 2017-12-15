@@ -33,6 +33,7 @@ public class viewSalesManFragment extends Fragment {
 
 
     View rootView;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -49,7 +50,8 @@ public class viewSalesManFragment extends Fragment {
             for (String key : salesMan.keySet()) {
                 HashMap<String, Object> salesManDetails = (HashMap<String, Object>) salesMan.get(key);
                 salesManList.add(new SalesManModel(key,
-                        (String) salesManDetails.get("sales_man_name")));
+                        (String) salesManDetails.get(Constants.SALES_MAN_PHONE),
+                        (String) salesManDetails.get(Constants.SALES_MAN_NAME)));
             }
         }
         populateSalesMan(salesManList);

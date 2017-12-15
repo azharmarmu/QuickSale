@@ -1,19 +1,19 @@
 package azhar.com.quicksale.modules;
 
 import android.annotation.SuppressLint;
-import android.app.DatePickerDialog;
-import android.content.Context;
+import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
+import android.support.v7.app.AlertDialog;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.DatePicker;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -26,19 +26,18 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.io.Serializable;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 
 import azhar.com.quicksale.R;
+import azhar.com.quicksale.activity.LandingActivity;
 import azhar.com.quicksale.activity.PartySalesDisplay;
+import azhar.com.quicksale.listeners.DateListener;
 import azhar.com.quicksale.utils.Constants;
+import azhar.com.quicksale.utils.DateUtils;
+import azhar.com.quicksale.utils.DialogUtils;
 import azhar.com.quicksale.utils.GenerateSalesReport;
 import azhar.com.quicksale.utils.Permissions;
 
@@ -48,377 +47,480 @@ import azhar.com.quicksale.utils.Permissions;
  */
 @SuppressWarnings({"unchecked", "deprecation"})
 @SuppressLint("SimpleDateFormat")
-public class Sales implements Serializable {
+public class Sales implements DateListener {
 
-    private static String TAG = "Sales";
-    private static List<String> salesWiseReport = new ArrayList<>();
-    private static List<String> routeWise = new ArrayList<>();
-    private static List<String> routeList = new ArrayList<>();
+    //private String TAG = "Sales";
+    private List<String> routeList = new ArrayList<>();
+
+    private String RouteTAG = Constants.ALL;
+    private String SalesTAG = Constants.PARTY;
+    private String currentRoute;
+
+    private Activity activity;
+    private View itemView;
+
+    private TextView datePicker, allTAG, routeTAG, partyTAG, productTAG, tvCashAmount, tvCreditAmount;
+    private RelativeLayout spinnerLayout;
+    private TableLayout productTable, partyTable;
 
     @SuppressLint("SetTextI18n")
-    public static void evaluate(Context context, View itemView) {
-        routeWise.clear();
-        routeWise.add(Constants.ALL);
-        routeWise.add(Constants.ROUTE);
-        salesWiseReport.clear();
-        salesWiseReport.add(Constants.PARTY);
-        salesWiseReport.add(Constants.PRODUCT);
-        clearTable(context, itemView);
+    public void evaluate(LandingActivity activity, View itemView) {
         try {
-            final TextView datePicker = itemView.findViewById(R.id.et_date_picker);
 
-            Date currentDate = new Date();
-            Calendar calendar = new GregorianCalendar();
-            calendar.setTime(currentDate);
-            int year = calendar.get(Calendar.YEAR);
-            int month = calendar.get(Calendar.MONTH) + 1;
-            int day = calendar.get(Calendar.DAY_OF_MONTH);
-            if (month <= 9) {
-                datePicker.setText(day + "/" + "0" + (month) + "/" + year);
-            } else {
-                datePicker.setText(day + "/" + (month) + "/" + year);
-            }
-            setSpinner(context, itemView);
-        } catch (ParseException e) {
+            this.activity = activity;
+            this.itemView = itemView;
+
+            initViews();
+
+            new DateUtils().dateListener(this);
+            new DateUtils().currentDate(datePicker);
+            new DateUtils().datePicker(activity, datePicker, Constants.TAKEN);
+
+            routeTagClickHandle();
+            salesTagClickHandle();
+
+            populate(datePicker.getText().toString());
+            generateReport();
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        datePicker(context, itemView);
-        generateReport(context, itemView);
     }
 
-    private static void generateReport(final Context context, final View itemView) {
+    private void initViews() {
+        datePicker = itemView.findViewById(R.id.et_date_picker);
+        allTAG = itemView.findViewById(R.id.tvAllTAG);
+        routeTAG = itemView.findViewById(R.id.tvRouteTAG);
+        partyTAG = itemView.findViewById(R.id.tvPartyTAG);
+        productTAG = itemView.findViewById(R.id.tvProductTAG);
+        spinnerLayout = itemView.findViewById(R.id.spinner_layout);
+        partyTable = itemView.findViewById(R.id.tl_party);
+        productTable = itemView.findViewById(R.id.tl_product);
+        tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
+        tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
+    }
+
+    private void routeTagClickHandle() {
+        allTAG.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                RouteTAG = Constants.ALL;
+                allTAG.setBackground(activity.getResources().getDrawable(R.drawable.box_primary_corner));
+                routeTAG.setBackground(activity.getResources().getDrawable(R.drawable.box_white_thick_border_corner_ripple));
+                spinnerLayout.setVisibility(View.GONE);
+                try {
+                    populate(datePicker.getText().toString());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        routeTAG.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                RouteTAG = Constants.ROUTE;
+                routeTAG.setBackground(activity.getResources().getDrawable(R.drawable.box_primary_corner));
+                allTAG.setBackground(activity.getResources().getDrawable(R.drawable.box_white_thick_border_corner_ripple));
+                spinnerLayout.setVisibility(View.VISIBLE);
+                getBillingData(datePicker.getText().toString());
+            }
+        });
+    }
+
+    private void salesTagClickHandle() {
+        partyTAG.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SalesTAG = Constants.PARTY;
+                partyTAG.setBackground(activity.getResources().getDrawable(R.drawable.box_primary_corner));
+                productTAG.setBackground(activity.getResources().getDrawable(R.drawable.box_white_thick_border_corner_ripple));
+                try {
+                    populate(datePicker.getText().toString());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        productTAG.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SalesTAG = Constants.PRODUCT;
+                productTAG.setBackground(activity.getResources().getDrawable(R.drawable.box_primary_corner));
+                partyTAG.setBackground(activity.getResources().getDrawable(R.drawable.box_white_thick_border_corner_ripple));
+                try {
+                    populate(datePicker.getText().toString());
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    //Show routes of the day
+    private void getBillingData(final String pickedDate) {
+        FirebaseFirestore.getInstance()
+                .collection(Constants.BILLING)
+                .orderBy(Constants.BILL_NO, Query.Direction.ASCENDING)
+                .whereEqualTo(Constants.BILL_DATE, pickedDate)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        routeList.clear();
+                        if (task.isSuccessful()) {
+                            for (final DocumentSnapshot document : task.getResult()) {
+                                if (document.contains(Constants.BILL_ROUTE) &&
+                                        routeList.contains(document.get(Constants.BILL_ROUTE).toString())) {
+                                    routeList.add(document.get(Constants.BILL_ROUTE).toString());
+                                }
+                            }
+                            try {
+                                setSpinner();
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+    }
+
+    private void setSpinner() throws ParseException {
+        final Spinner spinner = itemView.findViewById(R.id.spinner);
+        /*RouteList*/
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (!datePicker.getText().toString().isEmpty()) {
+                    try {
+                        currentRoute = spinner.getItemAtPosition(position).toString();
+                        populate(datePicker.getText().toString());
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(activity,
+                android.R.layout.simple_spinner_item, routeList);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
+
+
+    private void generateReport() {
         TextView generateReport = itemView.findViewById(R.id.tv_generate_report);
         generateReport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (Permissions.EXTERNAL_STORAGE(context)) {
-                    if (partyCustomerName.size() > 0) {
-                        final Spinner spinner1 = itemView.findViewById(R.id.spinner1);
-                        final Spinner spinner2 = itemView.findViewById(R.id.spinner2);
-                        final TextView datePicker = itemView.findViewById(R.id.et_date_picker);
-                        Log.e("generateReport", spinner2.toString());
-                        new GenerateSalesReport().generateSalesReport(
-                                context,
-                                spinner2.getSelectedItem() != null ? spinner2.getSelectedItem().toString() : spinner1.getSelectedItem().toString(),
-                                datePicker.getText().toString(),
-                                cashAmount, totalBill,
-                                partyCustomerName, partiesNetTotal,
-                                partiesItems, partiesItemsRate,
-                                partiesItemsTotal, partiesBillNo,
-                                partiesBillDate, partiesGST, partiesAmountReceived);
-                    }
-                }
-            }
-        });
-    }
+                //noinspection StatementWithEmptyBody
+                if (Permissions.EXTERNAL_STORAGE(activity)) {
+                    final AlertDialog.Builder dialog = new AlertDialog.Builder(activity);
+                    dialog.setTitle(activity.getString(R.string.app_name));
+                    dialog.setMessage("Do you want to Generate Report ?");
+                    dialog.setCancelable(true);
 
-    private static void clearTable(Context context, View itemView) {
-        TableLayout productTable = itemView.findViewById(R.id.tl_product);
-        productTable.removeAllViews();
-        TableLayout partyTable = itemView.findViewById(R.id.tl_party);
-        partyTable.removeAllViews();
-    }
-
-    private static void setup(Context context, View itemView, String pickedDate,
-                              String selectedRoute,
-                              String routeList,
-                              String selectedItem) throws ParseException {
-        LinearLayout productContainer = itemView.findViewById(R.id.product_container);
-        LinearLayout partyContainer = itemView.findViewById(R.id.party_container);
-        productContainer.setVisibility(View.GONE);
-        partyContainer.setVisibility(View.GONE);
-        if (selectedItem.equals(Constants.PRODUCT)) {
-            productContainer.setVisibility(View.VISIBLE);
-            if (selectedRoute.equalsIgnoreCase(Constants.ALL)) {
-                //populateProduct(context, itemView, pickedDate);
-            } else {
-                //populateProduct(context, itemView, pickedDate, routeList);
-            }
-        } else if (selectedItem.equals(Constants.PARTY)) {
-            partyContainer.setVisibility(View.VISIBLE);
-            if (selectedRoute.equalsIgnoreCase(Constants.ALL)) {
-                populateParty(context, itemView, pickedDate);
-            } else {
-            }
-        }
-    }
-
-    private static void setSpinner(final Context context, final View itemView) throws ParseException {
-        final Spinner spinner1 = itemView.findViewById(R.id.spinner1);
-        final Spinner spinner2 = itemView.findViewById(R.id.spinner2);
-        final Spinner spinner3 = itemView.findViewById(R.id.spinner3);
-        spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                TextView datePicker = itemView.findViewById(R.id.et_date_picker);
-                if (!datePicker.getText().toString().isEmpty()) {
-                    clearTable(context, itemView);
-                    try {
-                        String pickedDate = datePicker.getText().toString();
-                        if (spinner1.getSelectedItem().toString().equalsIgnoreCase(Constants.ROUTE)) {
-                            //getRouteList(pickedDate);
-                        } else {
-                            routeList.clear();
-                        }
-                        ArrayAdapter<String> adapter2 = new ArrayAdapter<>(context,
-                                android.R.layout.simple_spinner_item, routeList);
-                        adapter2.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        spinner2.setAdapter(adapter2);
-                        setup(context, itemView, pickedDate,
-                                spinner1.getSelectedItem() != null ? spinner1.getSelectedItem().toString() : null,
-                                spinner2.getSelectedItem() != null ? spinner2.getSelectedItem().toString() : null,
-                                spinner3.getSelectedItem() != null ? spinner3.getSelectedItem().toString() : null);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
-        ArrayAdapter<String> adapter1 = new ArrayAdapter<>(context,
-                android.R.layout.simple_spinner_item, routeWise);
-        adapter1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner1.setAdapter(adapter1);
-
-        /*RouteList*/
-        spinner2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                TextView datePicker = itemView.findViewById(R.id.et_date_picker);
-                if (!datePicker.getText().toString().isEmpty()) {
-                    clearTable(context, itemView);
-                    try {
-                        setup(context, itemView, datePicker.getText().toString(),
-                                spinner1.getSelectedItem() != null ? spinner1.getSelectedItem().toString() : null,
-                                spinner2.getSelectedItem() != null ? spinner2.getSelectedItem().toString() : null,
-                                spinner3.getSelectedItem() != null ? spinner3.getSelectedItem().toString() : null);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
-
-        /*Product or party*/
-        spinner3.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                TextView datePicker = itemView.findViewById(R.id.et_date_picker);
-                if (!datePicker.getText().toString().isEmpty()) {
-                    clearTable(context, itemView);
-                    try {
-                        setup(context, itemView, datePicker.getText().toString(),
-                                spinner1.getSelectedItem() != null ? spinner1.getSelectedItem().toString() : null,
-                                spinner2.getSelectedItem() != null ? spinner2.getSelectedItem().toString() : null,
-                                spinner3.getSelectedItem() != null ? spinner3.getSelectedItem().toString() : null);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
-        ArrayAdapter<String> adapter3 = new ArrayAdapter<>(context,
-                android.R.layout.simple_spinner_item, salesWiseReport);
-        adapter3.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner3.setAdapter(adapter3);
-    }
-
-    @SuppressLint("SimpleDateFormat")
-    private static void datePicker(final Context context, final View itemView) {
-        final TextView datePicker = itemView.findViewById(R.id.et_date_picker);
-
-        datePicker.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                clearTable(context, itemView);
-                final Calendar c = Calendar.getInstance();
-                final int mYear = c.get(Calendar.YEAR);
-                final int mMonth = c.get(Calendar.MONTH);
-                final int mDay = c.get(Calendar.DAY_OF_MONTH);
-
-                DatePickerDialog datePickerDialog = new DatePickerDialog(context,
-                        new DatePickerDialog.OnDateSetListener() {
-
-                            @Override
-                            public void onDateSet(DatePicker view, int year,
-                                                  int monthOfYear, int dayOfMonth) {
-                                String pYear = String.valueOf(year);
-                                String pMonth = String.valueOf(monthOfYear + 1);
-                                String pDay = String.valueOf(dayOfMonth);
-
-                                String cYear = String.valueOf(mYear);
-                                String cMonth = String.valueOf(mMonth + 1);
-                                String cDay = String.valueOf(mDay);
-
-                                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-                                try {
-                                    Date pickedDate = formatter.parse((pDay + "/" + pMonth + "/" + pYear));
-                                    Date currentDate = formatter.parse((cDay + "/" + cMonth + "/" + cYear));
-                                    if (pickedDate.compareTo(currentDate) <= 0) {
-                                        if ((monthOfYear + 1) <= 9) {
-                                            datePicker.setText(dayOfMonth + "/0" + (monthOfYear + 1) + "/" + year);
-                                        } else {
-                                            datePicker.setText(dayOfMonth + "/" + (monthOfYear + 1) + "/" + year);
-                                        }
-                                        datePicker.setError(null);
-                                        datePicker.clearFocus();
-                                        setSpinner(context, itemView);
-                                    } else {
-                                        datePicker.setError("Choose Valid date");
-                                    }
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }, mYear, mMonth, mDay);
-                datePickerDialog.show();
-            }
-        });
-    }
-
-    private static int cashAmount = 0;
-    private static int totalBill = 0;
-
-    private static HashMap<String, Object> partyCustomerName = new HashMap<>();
-    private static HashMap<String, Object> partiesSalesMan = new HashMap<>();
-    private static HashMap<String, Object> partiesNetTotal = new HashMap<>();
-    private static HashMap<String, Object> partiesItems = new HashMap<>();
-    private static HashMap<String, Object> partiesItemsRate = new HashMap<>();
-    private static HashMap<String, Object> partiesItemsTotal = new HashMap<>();
-    private static HashMap<String, Object> partiesBillNo = new HashMap<>();
-    private static HashMap<String, Object> partiesBillDate = new HashMap<>();
-    private static HashMap<String, Object> partiesGST = new HashMap<>();
-    private static HashMap<String, Object> partiesAmountReceived = new HashMap<>();
-
-    private static void populateParty(final Context context, final View itemView, String pickedDate) throws ParseException {
-        try {
-            cashAmount = 0;
-            totalBill = 0;
-
-            partyCustomerName = new HashMap<>();
-            partiesSalesMan = new HashMap<>();
-            partiesNetTotal = new HashMap<>();
-            partiesItems = new HashMap<>();
-            partiesItemsRate = new HashMap<>();
-            partiesItemsTotal = new HashMap<>();
-            partiesBillNo = new HashMap<>();
-            partiesBillDate = new HashMap<>();
-            partiesGST = new HashMap<>();
-            partiesAmountReceived = new HashMap<>();
-            // HashMap<String, Object> bill = FireBaseAPI.billing;
-            FirebaseFirestore.getInstance()
-                    .collection("billing")
-                    .orderBy("bill_no", Query.Direction.ASCENDING)
-                    .whereEqualTo("sold_date", pickedDate)
-                    .get()
-                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    //positive button
+                    dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            if (task.isSuccessful()) {
-                                TableLayout tableLayout = itemView.findViewById(R.id.tl_party);
-                                tableLayout.removeAllViews();
-                                for (final DocumentSnapshot document : task.getResult()) {
-                                    Log.d(TAG, document.getId() + " => " + document.getData());
-                                    if (document.contains("amount_received")) {
-                                        cashAmount += Integer.parseInt(document.get("amount_received").toString());
-                                    }
-                                    if (document.contains("net_total")) {
-                                        totalBill += Integer.parseInt(document.get("net_total").toString());
-                                    }
-
-                                    TableRow tr = new TableRow(context);
-                                    tr.setBackground(ContextCompat.getDrawable(context, R.drawable.box_white));
-
-                                    tr.setLayoutParams(new TableRow.LayoutParams(
-                                            TableRow.LayoutParams.MATCH_PARENT,
-                                            TableRow.LayoutParams.MATCH_PARENT));
-                                    tr.setPadding(16, 16, 16, 16);
-                                    tr.setWeightSum(3);
-
-                                    /*Params*/
-                                    TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                                            ViewGroup.LayoutParams.MATCH_PARENT);
-
-                                    params.weight = 1.0f;
-
-                                    /* Product Name --> TextView */
-                                    TextView name = new TextView(context);
-                                    name.setLayoutParams(params);
-
-                                    name.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                                    name.setPadding(16, 16, 16, 16);
-                                    name.setText(document.get("customer_name").toString());
-                                    name.setGravity(Gravity.CENTER);
-                                    tr.addView(name);
-
-                                    /* Product BillNo --> TextView */
-                                    TextView salesMan = new TextView(context);
-                                    salesMan.setLayoutParams(params);
-
-                                    salesMan.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                                    salesMan.setPadding(16, 16, 16, 16);
-                                    salesMan.setText(document.get("bill_no").toString());
-                                    salesMan.setGravity(Gravity.CENTER);
-                                    tr.addView(salesMan);
-
-                                    /* Product Price --> TextView */
-                                    TextView rate = new TextView(context);
-                                    rate.setLayoutParams(params);
-
-                                    rate.setTextColor(context.getResources().getColor(R.color.colorLightBlack));
-                                    rate.setPadding(16, 16, 16, 16);
-                                    rate.setText(document.get("net_total").toString());
-                                    rate.setGravity(Gravity.CENTER);
-                                    tr.addView(rate); // Adding textView to table-row.
-
-                                    tr.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            Intent partySalesDisplay = new Intent(context, PartySalesDisplay.class);
-                                            partySalesDisplay.putExtra("party_name", document.get("customer_name").toString());
-                                            partySalesDisplay.putExtra("net_total", Integer.parseInt(document.get("net_total").toString()));
-                                            partySalesDisplay.putExtra("items_qty", (HashMap<String, Object>) document.get("sold_items"));
-                                            partySalesDisplay.putExtra("items_rate", (HashMap<String, Object>) document.get("sold_items_rate"));
-                                            partySalesDisplay.putExtra("items_total", (HashMap<String, Object>) document.get("sold_items_total"));
-                                            partySalesDisplay.putExtra("party_bill_no", document.get("bill_no").toString());
-                                            partySalesDisplay.putExtra("party_bill_date", document.get("sold_date").toString());
-                                            if (partiesGST.size() > 0)
-                                                partySalesDisplay.putExtra("party_gst", document.get("customer_gst").toString());
-                                            if (document.contains("amount_received"))
-                                                partySalesDisplay.putExtra("amount_received", Integer.parseInt(document.get("amount_received").toString()));
-
-                                            context.startActivity(partySalesDisplay);
-                                        }
-                                    });
-
-                                    // Add the TableRow to the TableLayout
-                                    tableLayout.addView(tr);
-
-                                }
-                                TextView tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
-                                tvCashAmount.setText("");
-                                tvCashAmount.append("Cash sale: " + cashAmount);
-
-                                TextView tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
-                                tvCreditAmount.setText("");
-                                tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
-                            }
+                        public void onClick(DialogInterface dialog, int which) {
+                            new GenerateSalesReport().generateSalesReport(activity, salesTask,
+                                    currentRoute, datePicker.getText().toString());
+                            dialog.cancel();
                         }
                     });
+
+                    //negative button
+                    dialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+
+                    dialog.show();
+                }
+            }
+        });
+    }
+
+    /*----------------------------------------------------------------------------------------------------------------*/
+
+    private Task<QuerySnapshot> salesTask;
+
+    private void populate(String pickedDate) throws ParseException {
+        try {
+
+            partyTable.removeAllViews();
+            productTable.removeAllViews();
+            tvCashAmount.setText("");
+            tvCreditAmount.setText("");
+
+            DialogUtils.showProgressDialog(activity, "Loading...");
+
+            if (RouteTAG.equalsIgnoreCase(Constants.ROUTE)) {
+                FirebaseFirestore.getInstance()
+                        .collection(Constants.BILLING)
+                        .orderBy(Constants.BILL_NO, Query.Direction.ASCENDING)
+                        .whereEqualTo(Constants.BILL_DATE, pickedDate)
+                        .whereEqualTo(Constants.BILL_ROUTE, currentRoute)
+                        .get()
+                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                DialogUtils.dismissProgressDialog();
+                                if (task.isSuccessful()) {
+                                    salesTask = task;
+                                    LinearLayout productContainer = itemView.findViewById(R.id.product_container);
+                                    LinearLayout partyContainer = itemView.findViewById(R.id.party_container);
+                                    productContainer.setVisibility(View.GONE);
+                                    partyContainer.setVisibility(View.GONE);
+                                    if (SalesTAG.equalsIgnoreCase(Constants.PARTY)) {
+                                        partyContainer.setVisibility(View.VISIBLE);
+                                        populateParty();
+                                    } else if (SalesTAG.equalsIgnoreCase(Constants.PRODUCT)) {
+                                        productContainer.setVisibility(View.VISIBLE);
+                                        populateProduct();
+                                    }
+                                }
+                            }
+                        });
+
+            } else {
+                FirebaseFirestore.getInstance()
+                        .collection(Constants.BILLING)
+                        .orderBy(Constants.BILL_NO, Query.Direction.ASCENDING)
+                        .whereEqualTo(Constants.BILL_DATE, pickedDate)
+                        .get()
+                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                DialogUtils.dismissProgressDialog();
+                                if (task.isSuccessful()) {
+                                    salesTask = task;
+                                    LinearLayout productContainer = itemView.findViewById(R.id.product_container);
+                                    LinearLayout partyContainer = itemView.findViewById(R.id.party_container);
+                                    productContainer.setVisibility(View.GONE);
+                                    partyContainer.setVisibility(View.GONE);
+                                    if (SalesTAG.equalsIgnoreCase(Constants.PARTY)) {
+                                        partyContainer.setVisibility(View.VISIBLE);
+                                        populateParty();
+                                    } else if (SalesTAG.equalsIgnoreCase(Constants.PRODUCT)) {
+                                        productContainer.setVisibility(View.VISIBLE);
+                                        populateProduct();
+                                    }
+                                }
+                            }
+                        });
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void populateParty() {
+        int cashAmount = 0;
+        int totalBill = 0;
+        for (final DocumentSnapshot document : salesTask.getResult()) {
+            //Log.d(TAG, document.getId() + " => " + document.getData());
+            if (document.contains(Constants.BILL_AMOUNT_RECEIVED)) {
+                cashAmount += Integer.parseInt(document.get(Constants.BILL_AMOUNT_RECEIVED).toString());
+            }
+            if (document.contains(Constants.BILL_NET_TOTAL)) {
+                totalBill += Integer.parseInt(document.get(Constants.BILL_NET_TOTAL).toString());
+            }
+
+            TableRow tr = new TableRow(activity);
+            tr.setBackground(ContextCompat.getDrawable(activity, R.drawable.box_white));
+
+            tr.setLayoutParams(new TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT,
+                    TableRow.LayoutParams.MATCH_PARENT));
+            tr.setPadding(16, 16, 16, 16);
+            tr.setWeightSum(3);
+
+                                    /*Params*/
+            TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+
+            params.weight = 1.0f;
+
+            /* Party Name --> TextView */
+            TextView name = new TextView(activity);
+            name.setLayoutParams(params);
+
+            HashMap<String, Object> customerDetails = (HashMap<String, Object>) document.get(Constants.CUSTOMER);
+            name.setTextColor(activity.getResources().getColor(R.color.colorLightBlack));
+            name.setPadding(16, 16, 16, 16);
+            name.setText(customerDetails.get(Constants.CUSTOMER_NAME).toString());
+            name.setGravity(Gravity.CENTER);
+            tr.addView(name);
+
+            /* Party BillNo --> TextView */
+            TextView salesMan = new TextView(activity);
+            salesMan.setLayoutParams(params);
+
+            salesMan.setTextColor(activity.getResources().getColor(R.color.colorLightBlack));
+            salesMan.setPadding(16, 16, 16, 16);
+            salesMan.setText(document.get(Constants.BILL_NO).toString());
+            salesMan.setGravity(Gravity.CENTER);
+            tr.addView(salesMan);
+
+            /* Party Price --> TextView */
+            TextView rate = new TextView(activity);
+            rate.setLayoutParams(params);
+
+            rate.setTextColor(activity.getResources().getColor(R.color.colorLightBlack));
+            rate.setPadding(16, 16, 16, 16);
+            rate.setText(document.get(Constants.BILL_NET_TOTAL).toString());
+            rate.setGravity(Gravity.CENTER);
+            tr.addView(rate); // Adding textView to table-row.
+
+            tr.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    HashMap<String, Object> items = (HashMap<String, Object>) document.get(Constants.BILL_SALES);
+                    HashMap<String, Object> customer = (HashMap<String, Object>) document.get(Constants.BILL_CUSTOMER);
+
+                    HashMap<String, Object> salesDisplay = new HashMap<>();
+
+                    salesDisplay.put(Constants.BILL_CUSTOMER, customer);
+                    salesDisplay.put(Constants.BILL_SALES, items);
+                    salesDisplay.put(Constants.BILL_NET_TOTAL, document.get(Constants.BILL_NET_TOTAL).toString());
+                    salesDisplay.put(Constants.BILL_NO, document.get(Constants.BILL_NO).toString());
+                    salesDisplay.put(Constants.BILL_DATE, document.get(Constants.BILL_DATE).toString());
+                    if (document.contains(Constants.BILL_AMOUNT_RECEIVED)) {
+                        salesDisplay.put(Constants.BILL_AMOUNT_RECEIVED,
+                                document.get(Constants.BILL_AMOUNT_RECEIVED).toString());
+                    }
+
+                    //navigate to PartyDisplay activity
+                    Intent partySalesDisplay = new Intent(activity, PartySalesDisplay.class);
+                    partySalesDisplay.putExtra(Constants.BILL_SALES, salesDisplay);
+                    activity.startActivity(partySalesDisplay);
+
+                }
+            });
+
+            // Add the TableRow to the TableLayout
+            partyTable.addView(tr);
+
+        }
+        tvCashAmount.setText("");
+        tvCashAmount.append("Cash sale: " + cashAmount);
+
+        tvCreditAmount.setText("");
+        tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
+    }
+
+    private void populateProduct() {
+        int cashAmount = 0;
+        int totalBill = 0;
+        HashMap<String, Object> wholeItems = new HashMap<>();
+        for (final DocumentSnapshot document : salesTask.getResult()) {
+            //Log.d(TAG, document.getId() + " => " + document.getData());
+            if (document.contains(Constants.BILL_AMOUNT_RECEIVED)) {
+                cashAmount += Integer.parseInt(document.get(Constants.BILL_AMOUNT_RECEIVED).toString());
+            }
+            if (document.contains(Constants.BILL_NET_TOTAL)) {
+                totalBill += Integer.parseInt(document.get(Constants.BILL_NET_TOTAL).toString());
+            }
+
+            if (document.contains(Constants.BILL_SALES)) {
+                HashMap<String, Object> items = (HashMap<String, Object>) document.get(Constants.BILL_SALES);
+                for (String key : items.keySet()) {
+                    HashMap<String, Object> itemsDetails = (HashMap<String, Object>) items.get(key);
+                    if (wholeItems.containsKey(key)) { // ---> Update new Data
+                        HashMap<String, Object> currentItem = (HashMap<String, Object>) wholeItems.get(key);
+                        String name = currentItem.get(Constants.BILL_SALES_PRODUCT_NAME).toString();
+                        int qty = Integer.parseInt(currentItem.get(Constants.BILL_SALES_PRODUCT_QTY).toString()) +
+                                Integer.parseInt(itemsDetails.get(Constants.BILL_SALES_PRODUCT_QTY).toString());
+                        int amount = Integer.parseInt(currentItem.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString()) +
+                                Integer.parseInt(itemsDetails.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString());
+                        currentItem.put(Constants.BILL_SALES_PRODUCT_NAME, name);
+                        currentItem.put(Constants.BILL_SALES_PRODUCT_QTY, qty);
+                        currentItem.put(Constants.BILL_SALES_PRODUCT_TOTAL, amount);
+                        wholeItems.remove(key);
+                        wholeItems.put(key, currentItem);
+                    } else { // ---> Insert new Data
+                        HashMap<String, Object> currentItem = new HashMap<>();
+                        String name = itemsDetails.get(Constants.BILL_SALES_PRODUCT_NAME).toString();
+                        int qty = Integer.parseInt(itemsDetails.get(Constants.BILL_SALES_PRODUCT_QTY).toString());
+                        int amount = Integer.parseInt(itemsDetails.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString());
+                        currentItem.put(Constants.BILL_SALES_PRODUCT_NAME, name);
+                        currentItem.put(Constants.BILL_SALES_PRODUCT_QTY, qty);
+                        currentItem.put(Constants.BILL_SALES_PRODUCT_TOTAL, amount);
+                        wholeItems.put(key, currentItem);
+                    }
+                }
+            }
+        }
+
+        for (String key : wholeItems.keySet()) {
+            TableRow tr = new TableRow(activity);
+            tr.setBackground(ContextCompat.getDrawable(activity, R.drawable.box_white));
+
+            tr.setLayoutParams(new TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT,
+                    TableRow.LayoutParams.MATCH_PARENT));
+            tr.setPadding(16, 16, 16, 16);
+            tr.setWeightSum(3);
+
+                                    /*Params*/
+            TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT);
+
+            params.weight = 1.0f;
+
+            /* Product Name --> TextView */
+            TextView name = new TextView(activity);
+            name.setLayoutParams(params);
+
+            HashMap<String, Object> itemsDetails = (HashMap<String, Object>) wholeItems.get(key);
+            name.setTextColor(activity.getResources().getColor(R.color.colorLightBlack));
+            name.setPadding(16, 16, 16, 16);
+            name.setText(itemsDetails.get(Constants.BILL_SALES_PRODUCT_NAME).toString());
+            name.setGravity(Gravity.CENTER);
+            tr.addView(name);
+
+            /* Product BillNo --> TextView */
+            TextView salesMan = new TextView(activity);
+            salesMan.setLayoutParams(params);
+
+            salesMan.setTextColor(activity.getResources().getColor(R.color.colorLightBlack));
+            salesMan.setPadding(16, 16, 16, 16);
+            salesMan.setText(itemsDetails.get(Constants.BILL_SALES_PRODUCT_QTY).toString());
+            salesMan.setGravity(Gravity.CENTER);
+            tr.addView(salesMan);
+
+            /* Product Price --> TextView */
+            TextView rate = new TextView(activity);
+            rate.setLayoutParams(params);
+
+            rate.setTextColor(activity.getResources().getColor(R.color.colorLightBlack));
+            rate.setPadding(16, 16, 16, 16);
+            rate.setText(itemsDetails.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString());
+            rate.setGravity(Gravity.CENTER);
+            tr.addView(rate); // Adding textView to table-row.
+
+            productTable.addView(tr);
+        }
+
+        tvCashAmount.setText("");
+        tvCashAmount.append("Cash sale: " + cashAmount);
+
+        tvCreditAmount.setText("");
+        tvCreditAmount.append("Credit sale: " + (totalBill - cashAmount));
+    }
+
+    @Override
+    public void getDate(String date) throws ParseException {
+        populate(date);
     }
 }

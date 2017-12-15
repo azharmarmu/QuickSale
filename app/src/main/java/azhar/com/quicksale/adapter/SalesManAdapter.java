@@ -154,7 +154,7 @@ public class SalesManAdapter extends RecyclerView.Adapter<SalesManAdapter.MyView
                         !salesManPhone.isEmpty()) {
                     SalesManApi.salesManDBRef.child(originalPhone).removeValue();
                     salesManList.remove(position);
-                    salesManList.add(new SalesManModel(salesManName, salesManPhone));
+                    salesManList.add(new SalesManModel(salesManPhone, salesManName, salesManPhone));
                     salesMan.put("sales_man_name", salesManName);
                     salesMan.put("sales_man_phone", salesManPhone);
                     SalesManApi.salesManDBRef.child(salesManPhone).
