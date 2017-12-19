@@ -10,6 +10,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import azhar.com.quicksale.listeners.BillNoListener;
 import azhar.com.quicksale.utils.Constants;
 
 import static azhar.com.quicksale.api.FireBaseAPI.ENVIRONMENT;
@@ -21,7 +22,6 @@ import static azhar.com.quicksale.api.FireBaseAPI.ENVIRONMENT;
 @SuppressWarnings("unchecked")
 public class BillNoApi {
     public static DatabaseReference billNoDBRef = ENVIRONMENT.child(Constants.BILL_NO);
-
     public static List<Integer> billNo = new ArrayList<>();
 
     public void getBillNo() {
@@ -32,6 +32,7 @@ public class BillNoApi {
                 try {
                     if (dataSnapshot.getValue() != null) {
                         billNo = (List<Integer>) dataSnapshot.getValue();
+                        billNoListener.getBillNo(billNo);
                     } else {
                         billNo.clear();
                     }
@@ -45,5 +46,11 @@ public class BillNoApi {
                 Log.e("FireError", databaseError.getMessage());
             }
         });
+    }
+
+    private static BillNoListener billNoListener;
+
+    public void setBillNoListener(BillNoListener billNoListener) {
+        BillNoApi.billNoListener = billNoListener;
     }
 }

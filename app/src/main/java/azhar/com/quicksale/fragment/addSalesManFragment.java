@@ -55,12 +55,13 @@ public class addSalesManFragment extends Fragment {
                 if (!salesManName.isEmpty()
                         && !salesManPhone.isEmpty()) {
                     if (!salesMan.containsKey(salesManPhone)) {
-                        salesMan.put(Constants.SALES_MAN_NAME, salesManName);
-                        salesMan.put(Constants.SALES_MAN_PHONE, salesManPhone);
+                        HashMap<String,Object> man = new HashMap<>();
+                        man.put(Constants.SALES_MAN_NAME, salesManName);
+                        man.put(Constants.SALES_MAN_PHONE, salesManPhone);
                         name.setText("");
                         phone.setText("");
                         SalesManApi.salesManDBRef.child(salesManPhone)
-                                .updateChildren(salesMan)
+                                .updateChildren(man)
                                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {

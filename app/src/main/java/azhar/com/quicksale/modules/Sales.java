@@ -38,7 +38,7 @@ import azhar.com.quicksale.listeners.DateListener;
 import azhar.com.quicksale.utils.Constants;
 import azhar.com.quicksale.utils.DateUtils;
 import azhar.com.quicksale.utils.DialogUtils;
-import azhar.com.quicksale.utils.GenerateSalesReport;
+import azhar.com.quicksale.reports.GenerateSalesReport;
 import azhar.com.quicksale.utils.Permissions;
 
 
@@ -74,7 +74,7 @@ public class Sales implements DateListener {
 
             new DateUtils().dateListener(this);
             new DateUtils().currentDate(datePicker);
-            new DateUtils().datePicker(activity, datePicker, Constants.TAKEN);
+            new DateUtils().datePicker(activity, datePicker);
 
             routeTagClickHandle();
             salesTagClickHandle();
@@ -438,24 +438,24 @@ public class Sales implements DateListener {
                     HashMap<String, Object> itemsDetails = (HashMap<String, Object>) items.get(key);
                     if (wholeItems.containsKey(key)) { // ---> Update new Data
                         HashMap<String, Object> currentItem = (HashMap<String, Object>) wholeItems.get(key);
-                        String name = currentItem.get(Constants.BILL_SALES_PRODUCT_NAME).toString();
-                        int qty = Integer.parseInt(currentItem.get(Constants.BILL_SALES_PRODUCT_QTY).toString()) +
-                                Integer.parseInt(itemsDetails.get(Constants.BILL_SALES_PRODUCT_QTY).toString());
-                        int amount = Integer.parseInt(currentItem.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString()) +
-                                Integer.parseInt(itemsDetails.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString());
-                        currentItem.put(Constants.BILL_SALES_PRODUCT_NAME, name);
-                        currentItem.put(Constants.BILL_SALES_PRODUCT_QTY, qty);
-                        currentItem.put(Constants.BILL_SALES_PRODUCT_TOTAL, amount);
+                        String name = currentItem.get(Constants.PRODUCT_NAME).toString();
+                        int qty = Integer.parseInt(currentItem.get(Constants.PRODUCT_QTY).toString()) +
+                                Integer.parseInt(itemsDetails.get(Constants.PRODUCT_QTY).toString());
+                        int amount = Integer.parseInt(currentItem.get(Constants.PRODUCT_TOTAL).toString()) +
+                                Integer.parseInt(itemsDetails.get(Constants.PRODUCT_TOTAL).toString());
+                        currentItem.put(Constants.PRODUCT_NAME, name);
+                        currentItem.put(Constants.PRODUCT_QTY, qty);
+                        currentItem.put(Constants.PRODUCT_TOTAL, amount);
                         wholeItems.remove(key);
                         wholeItems.put(key, currentItem);
                     } else { // ---> Insert new Data
                         HashMap<String, Object> currentItem = new HashMap<>();
-                        String name = itemsDetails.get(Constants.BILL_SALES_PRODUCT_NAME).toString();
-                        int qty = Integer.parseInt(itemsDetails.get(Constants.BILL_SALES_PRODUCT_QTY).toString());
-                        int amount = Integer.parseInt(itemsDetails.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString());
-                        currentItem.put(Constants.BILL_SALES_PRODUCT_NAME, name);
-                        currentItem.put(Constants.BILL_SALES_PRODUCT_QTY, qty);
-                        currentItem.put(Constants.BILL_SALES_PRODUCT_TOTAL, amount);
+                        String name = itemsDetails.get(Constants.PRODUCT_NAME).toString();
+                        int qty = Integer.parseInt(itemsDetails.get(Constants.PRODUCT_QTY).toString());
+                        int amount = Integer.parseInt(itemsDetails.get(Constants.PRODUCT_TOTAL).toString());
+                        currentItem.put(Constants.PRODUCT_NAME, name);
+                        currentItem.put(Constants.PRODUCT_QTY, qty);
+                        currentItem.put(Constants.PRODUCT_TOTAL, amount);
                         wholeItems.put(key, currentItem);
                     }
                 }
@@ -485,7 +485,7 @@ public class Sales implements DateListener {
             HashMap<String, Object> itemsDetails = (HashMap<String, Object>) wholeItems.get(key);
             name.setTextColor(activity.getResources().getColor(R.color.colorLightBlack));
             name.setPadding(16, 16, 16, 16);
-            name.setText(itemsDetails.get(Constants.BILL_SALES_PRODUCT_NAME).toString());
+            name.setText(itemsDetails.get(Constants.PRODUCT_NAME).toString());
             name.setGravity(Gravity.CENTER);
             tr.addView(name);
 
@@ -495,7 +495,7 @@ public class Sales implements DateListener {
 
             salesMan.setTextColor(activity.getResources().getColor(R.color.colorLightBlack));
             salesMan.setPadding(16, 16, 16, 16);
-            salesMan.setText(itemsDetails.get(Constants.BILL_SALES_PRODUCT_QTY).toString());
+            salesMan.setText(itemsDetails.get(Constants.PRODUCT_QTY).toString());
             salesMan.setGravity(Gravity.CENTER);
             tr.addView(salesMan);
 
@@ -505,7 +505,7 @@ public class Sales implements DateListener {
 
             rate.setTextColor(activity.getResources().getColor(R.color.colorLightBlack));
             rate.setPadding(16, 16, 16, 16);
-            rate.setText(itemsDetails.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString());
+            rate.setText(itemsDetails.get(Constants.PRODUCT_TOTAL).toString());
             rate.setGravity(Gravity.CENTER);
             tr.addView(rate); // Adding textView to table-row.
 

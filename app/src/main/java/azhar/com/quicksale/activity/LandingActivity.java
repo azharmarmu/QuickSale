@@ -25,12 +25,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.HashMap;
+import java.util.List;
 
 import azhar.com.quicksale.R;
+import azhar.com.quicksale.api.BillNoApi;
 import azhar.com.quicksale.api.CompanyApi;
 import azhar.com.quicksale.api.CustomerApi;
 import azhar.com.quicksale.api.ProductsApi;
 import azhar.com.quicksale.api.SalesManApi;
+import azhar.com.quicksale.listeners.BillNoListener;
 import azhar.com.quicksale.listeners.CustomerListener;
 import azhar.com.quicksale.listeners.ProductsListener;
 import azhar.com.quicksale.listeners.SalesManListener;
@@ -46,7 +49,8 @@ public class LandingActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
         CustomerListener,
         SalesManListener,
-        ProductsListener {
+        ProductsListener,
+        BillNoListener {
 
     View taken, order, salesStore, returns, customer, salesMan, setup;
     public static int whereIam = 0;
@@ -61,6 +65,7 @@ public class LandingActivity extends AppCompatActivity
         new CustomerApi().setCustomerListener(this);
         new SalesManApi().setSalesManListener(this);
         new ProductsApi().setProductsListener(this);
+        new BillNoApi().setBillNoListener(this);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setSupportActionBar(toolbar);
@@ -186,7 +191,8 @@ public class LandingActivity extends AppCompatActivity
             whereIam = 1;
         } else if (id == R.id.nav_sales) {
             if (getSupportActionBar() != null) {
-                getSupportActionBar().setTitle("Sales - deprecated");
+                getSupportActionBar().setTitle("Sales" + " (Last bill no:- "
+                        + BillNoApi.billNo.get(BillNoApi.billNo.size() - 1) + ")");
             }
             whereIam = 2;
         } else if (id == R.id.nav_returns) {
@@ -232,7 +238,7 @@ public class LandingActivity extends AppCompatActivity
                 break;
             case 1:
                 order.setVisibility(View.VISIBLE);
-                Order.evaluate(this, order);
+                new Order().evaluate(this, order);
                 break;
             case 2:
                 salesStore.setVisibility(View.VISIBLE);
@@ -240,7 +246,7 @@ public class LandingActivity extends AppCompatActivity
                 break;
             case 3:
                 returns.setVisibility(View.VISIBLE);
-                Return.evaluate(this, returns);
+                new Return().evaluate(this, returns);
                 break;
             case 4:
                 customer.setVisibility(View.VISIBLE);
@@ -314,6 +320,11 @@ public class LandingActivity extends AppCompatActivity
 
     @Override
     public void getProductsListener(HashMap<String, Object> customer) {
+        switchScreen();
+    }
+
+    @Override
+    public void getBillNo(List<Integer> billNo) {
         switchScreen();
     }
 }

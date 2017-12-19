@@ -43,7 +43,7 @@ public class DateUtils {
     }
 
     @SuppressLint("SimpleDateFormat")
-    public void datePicker(final Activity activity, final TextView datePicker, final String isFrom) {
+    public void datePicker(final Activity activity, final TextView datePicker) {
         datePicker.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

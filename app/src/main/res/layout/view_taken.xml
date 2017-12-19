@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="@dimen/activity_horizontal_margin">
 
-    <TextView
+    <!--<TextView
         android:id="@+id/no_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,7 +15,15 @@
         android:text="No Taken"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textColor="@color/colorLightBlack"
-        android:visibility="visible" />
+        android:visibility="visible" />-->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/no_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        app:lottie_autoPlay="true"
+        app:lottie_fileName="no_view.json"
+        app:lottie_loop="true" />
 
     <TextView
         android:id="@+id/btn_create_taken"

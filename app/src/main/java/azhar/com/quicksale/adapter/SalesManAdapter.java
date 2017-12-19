@@ -81,7 +81,7 @@ public class SalesManAdapter extends RecyclerView.Adapter<SalesManAdapter.MyView
             holder.salesDelete.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    SalesManApi.salesManDBRef.child(men.getName()).removeValue();
+                    SalesManApi.salesManDBRef.child(men.getPhone()).removeValue();
                     salesManList.remove(position);
                     notifyDataSetChanged();
                 }

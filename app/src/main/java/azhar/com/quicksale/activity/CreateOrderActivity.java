@@ -1,23 +1,40 @@
 package azhar.com.quicksale.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.Serializable;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import azhar.com.quicksale.R;
 import azhar.com.quicksale.api.CustomerApi;
-
+import azhar.com.quicksale.api.OrderNoApi;
+import azhar.com.quicksale.utils.Constants;
+import azhar.com.quicksale.utils.DialogUtils;
 
 @SuppressWarnings({"unchecked", "deprecation"})
 public class CreateOrderActivity extends AppCompatActivity implements Serializable {
@@ -25,26 +42,29 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
     String key;
     HashMap<String, Object> orderMap = new HashMap<>();
     HashMap<String, Object> orderItems = new HashMap<>();
-    HashMap<String, Object> itemDetails = new HashMap<>();
+    HashMap<String, Object> items = new HashMap<>();
 
     TextView salesManListView;
     EditText customerGst, customerAddress;
     AutoCompleteTextView customerName;
     TableLayout tableLayout;
     List<String> salesMan;
+    List<Integer> orderNo = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_order);
 
-        /*salesManListView = findViewById(R.id.sales_man_list);
+        orderNo = OrderNoApi.orderNo;
+
+        salesManListView = findViewById(R.id.sales_man_list);
         customerName = findViewById(R.id.et_customer_name);
         customerGst = findViewById(R.id.et_customer_gst);
         customerAddress = findViewById(R.id.et_customer_address);
         tableLayout = findViewById(R.id.table_layout);
         isOrderEdit(getIntent().getExtras());
-        getCustomerDetails();*/
+        getCustomerDetails();
     }
 
     private void getCustomerDetails() {
@@ -53,11 +73,11 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
         final List<String> custAddress = new ArrayList<>();
         HashMap<String, Object> customer = CustomerApi.customer;
         if (customer.size() > 0) {
-            for (String key : customer.keySet()) {
-                HashMap<String, Object> customerDetails = (HashMap<String, Object>) customer.get(key);
-                custName.add(customerDetails.get("customer_name").toString());
-                custGST.add(customerDetails.get("customer_gst").toString());
-                custAddress.add(customerDetails.get("customer_address").toString());
+            for (String customerKey : customer.keySet()) {
+                HashMap<String, Object> customerDetails = (HashMap<String, Object>) customer.get(customerKey);
+                custName.add(customerDetails.get(Constants.CUSTOMER_NAME).toString());
+                custGST.add(customerDetails.get(Constants.CUSTOMER_GST).toString());
+                custAddress.add(customerDetails.get(Constants.CUSTOMER_ADDRESS).toString());
             }
         }
         ArrayAdapter<List<String>> adapter =
@@ -72,49 +92,33 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
         });
     }
 
-    /*private void isOrderEdit(Bundle extras) {
+    private void isOrderEdit(Bundle extras) {
         if (extras != null) {
-            key = extras.getString("key");
-            orderMap = (HashMap<String, Object>) FireBaseAPI.order.get(key);
+            key = extras.getString(Constants.KEY);
+            orderMap = (HashMap<String, Object>) extras.getSerializable(Constants.ORDER);
             if (orderMap != null) {
-                salesMan = (List<String>) orderMap.get("sales_man_name");
-                populateSalesMan(salesMan);
-                customerName.setText((String) orderMap.get("customer_name"));
-                if (!String.valueOf(orderMap.get("customer_gst")).isEmpty()) {
-                    customerGst.setText((String) orderMap.get("customer_gst"));
+                salesMan = (List<String>) orderMap.get(Constants.ORDER_SALES_MAN_NAME);
+                populateSalesMan();
+                HashMap<String, Object> customer = (HashMap<String, Object>) orderMap.get(Constants.ORDER_CUSTOMER);
+                customerName.setText((String) customer.get(Constants.CUSTOMER_NAME));
+                if (!String.valueOf(customer.get(Constants.CUSTOMER_GST)).isEmpty()) {
+                    customerGst.setText((String) customer.get(Constants.CUSTOMER_GST));
                 } else {
-                    customerGst.setText("NIL");
+                    customerGst.setText(R.string.nil);
                 }
-                customerAddress.setText((String) orderMap.get("customer_address"));
-                itemDetails = (HashMap<String, Object>) orderMap.get("sales_order_qty");
+                customerAddress.setText((String) customer.get(Constants.CUSTOMER_ADDRESS));
+                items = (HashMap<String, Object>) orderMap.get(Constants.ORDER_SALES);
                 populateItemsDetails();
-
-                if (!orderMap.get("process").toString().equalsIgnoreCase(Constants.START)) {
-                    viewOrder();
-                }
             }
         } else {
             populateItemsDetails();
-            salesManListView.setText("NIL");
+            salesManListView.setText(R.string.nil);
         }
     }
 
-    private void viewOrder() {
-        TextView salesManTextView = (TextView) findViewById(R.id.sales_man);
-        salesManTextView.setClickable(false);
-        customerName.setEnabled(false);
-        customerGst.setEnabled(false);
-        customerAddress.setEnabled(false);
-        tableLayout.setEnabled(false);
-        Button createOrder = (Button) findViewById(R.id.btn_create_order);
-        createOrder.setVisibility(View.GONE);
-    }
-
     private void populateItemsDetails() {
-        HashMap<String, Object> products = ProductsApi.productPrice;
-
-        for (String prodKey : products.keySet()) {
-            *//* Create a TableRow dynamically *//*
+        for (String prodKey : items.keySet()) {
+            /* Create a TableRow dynamically */
             TableRow tr = new TableRow(this);
             tr.setBackground(getResources().getDrawable(R.drawable.box_white));
             tr.setLayoutParams(new TableRow.LayoutParams(
@@ -122,13 +126,15 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
                     TableRow.LayoutParams.MATCH_PARENT));
             tr.setWeightSum(2);
 
-            *//*Params*//*
+            /*Params*/
             TableRow.LayoutParams params = new TableRow.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT);
             params.weight = 1.0f;
 
 
-            *//* Product Name --> TextView *//*
+            HashMap<String, Object> itemsDetails = (HashMap<String, Object>) items.get(prodKey);
+
+            /* Product Name --> TextView */
             TextView productName = new TextView(this);
             productName.setLayoutParams(params);
 
@@ -139,14 +145,14 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
             productName.setGravity(Gravity.CENTER);
             tr.addView(productName);
 
-            *//* Product QTY --> EditText *//*
+            /* Product QTY --> EditText */
             EditText productQTY = new EditText(this);
             productQTY.setLayoutParams(params);
 
             productQTY.setTextColor(getResources().getColor(R.color.colorLightBlack));
             productQTY.setPadding(16, 16, 16, 16);
-            if (itemDetails != null && itemDetails.containsKey(prodKey)) {
-                productQTY.setText((String) itemDetails.get(prodKey));
+            if (itemsDetails != null && itemsDetails.containsKey(prodKey)) {
+                productQTY.setText((String) itemsDetails.get(prodKey));
             } else {
                 productQTY.setHint("0");
             }
@@ -162,7 +168,7 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
 
     public void salesManClick(View view) {
         Intent intent = new Intent(CreateOrderActivity.this, SalesManActivity.class);
-        intent.putExtra("sales_man", (Serializable) salesMan);
+        intent.putExtra(Constants.SALES_MAN, (Serializable) salesMan);
         startActivityForResult(intent, Constants.SALES_MAN_CODE);
     }
 
@@ -171,8 +177,8 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == Constants.SALES_MAN_CODE) {
             try {
-                salesMan = (List<String>) data.getSerializableExtra("salesMan");
-                populateSalesMan(salesMan);
+                salesMan = (List<String>) data.getSerializableExtra(Constants.SALES_MAN);
+                populateSalesMan();
             } catch (NullPointerException e) {
                 e.printStackTrace();
             }
@@ -180,21 +186,22 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
     }
 
     @SuppressWarnings("deprecation")
-    private void populateSalesMan(List<String> salesMan) {
-        String salesManName = "";
+    private void populateSalesMan() {
+        StringBuilder salesManName = new StringBuilder();
         for (int i = 0; i < salesMan.size(); i++) {
             if (!salesMan.get(i).isEmpty()) {
                 if (i == 0) {
-                    salesManName = salesMan.get(i);
+                    salesManName = new StringBuilder(salesMan.get(i));
                 } else {
-                    salesManName = salesManName + ", " + salesMan.get(i);
+                    salesManName.append(", ").append(salesMan.get(i));
                 }
             }
         }
-        salesManListView.setText(salesManName);
+        salesManListView.setText(salesManName.toString());
     }
 
     public void createOrder(View view) throws ParseException {
+
         String localSalesMan = (String) salesManListView.getText();
         String localCustomerName = String.valueOf(customerName.getText());
         String localCustomerGst = String.valueOf(customerGst.getText());
@@ -208,36 +215,70 @@ public class CreateOrderActivity extends AppCompatActivity implements Serializab
                 EditText productQTY = (EditText) tableRow.getChildAt(1);
                 String prodQTY = productQTY.getText().toString();
                 if (!prodName.isEmpty() && !prodQTY.isEmpty() && Integer.parseInt(prodQTY) > 0) {
-                    orderItems.put(prodName, prodQTY);
+                    HashMap<String, Object> productDetails = new HashMap<>();
+                    productDetails.put(Constants.TAKEN_SALES_PRODUCT_NAME, prodName);
+                    productDetails.put(Constants.TAKEN_SALES_QTY, prodQTY);
+                    productDetails.put(Constants.TAKEN_SALES_QTY_STOCK, prodQTY);
+                    orderItems.put(prodName, productDetails);
                 }
             }
         }
-        if (localSalesMan.equals("NIL") || localSalesMan.isEmpty()) {
+        if (localSalesMan.equals(getString(R.string.nil)) || localSalesMan.isEmpty()) {
             Toast.makeText(getApplicationContext(), "Select Sales Man", Toast.LENGTH_SHORT).show();
         } else if (localCustomerName.isEmpty()) {
             customerName.setError("Please Enter Customer name");
             customerName.requestFocus();
+        } else if (localCustomerAddress.isEmpty()) {
+            customerAddress.setError("Please Enter Customer Address");
+            customerAddress.requestFocus();
         } else if (orderItems.isEmpty()) {
             Toast.makeText(getApplicationContext(), "Select Item for sale", Toast.LENGTH_SHORT).show();
         } else {
-            HashMap<String, Object> orders = new HashMap<>();
-            orders.put("process", Constants.START);
-            orders.put("order_date", Constants.currentDate());
-            orders.put("sales_man_name", salesMan);
-            orders.put("customer_name", localCustomerName);
+
+            int number = 1;
+            if (orderNo.size() > 0) {
+                number = Integer.parseInt(String.valueOf(orderNo.get(orderNo.size() - 1)));
+                number = number + 1;
+            }
+            orderNo.add(number);
+
+            HashMap<String, Object> customerDetails = new HashMap<>();
+            customerDetails.put(Constants.CUSTOMER_NAME, localCustomerName);
             if (!localCustomerGst.isEmpty()) {
-                orders.put("customer_gst", localCustomerGst);
+                customerDetails.put(Constants.CUSTOMER_GST, localCustomerGst);
             }
-            orders.put("customer_address", localCustomerAddress);
-            orders.put("sales_order_qty", orderItems);
-            orders.put("sales_order_qty_left", orderItems);
+            customerDetails.put(Constants.CUSTOMER_ADDRESS, localCustomerAddress);
+
+            HashMap<String, Object> orders = new HashMap<>();
             if (key == null) {
-                FireBaseAPI.orderDBRef.push().updateChildren(orders);
-            } else {
-                FireBaseAPI.orderDBRef.child(key).updateChildren(orders);
+                key = UUID.randomUUID().toString();
             }
-            finish();
+            orders.put(Constants.ORDER_ID, key);
+            orders.put(Constants.ORDER_NO, orderNo);
+            orders.put(Constants.ORDER_PROCESS, Constants.START);
+            orders.put(Constants.ORDER_DATE, Constants.currentDate());
+            orders.put(Constants.ORDER_SALES, orderItems);
+            orders.put(Constants.ORDER_SALES_MAN_NAME, salesMan);
+            orders.put(Constants.ORDER_CUSTOMER, customerDetails);
+
+            FirebaseFirestore dbStore = FirebaseFirestore.getInstance();
+
+            DialogUtils.showProgressDialog(CreateOrderActivity.this, getString(R.string.loading));
+            dbStore.collection(Constants.ORDER)
+                    .add(orders)
+                    .addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentReference> task) {
+                            DialogUtils.dismissProgressDialog();
+                            if (task.isSuccessful()) {
+                                DialogUtils.appToastShort(getApplicationContext(), "Created order successfully");
+                                finish();
+                            } else {
+                                DialogUtils.appToastShort(getApplicationContext(), "Order couldn't be created");
+                            }
+                        }
+                    });
         }
-    }*/
+    }
 }
 

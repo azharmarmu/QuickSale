@@ -16,6 +16,7 @@ import java.util.List;
 import azhar.com.quicksale.R;
 import azhar.com.quicksale.activity.ReturnActivity;
 import azhar.com.quicksale.model.TakenModel;
+import azhar.com.quicksale.utils.Constants;
 
 /**
  * Created by azharuddin on 24/7/17.
@@ -45,16 +46,21 @@ public class ReturnAdapter extends RecyclerView.Adapter<ReturnAdapter.MyViewHold
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
         final TakenModel taken = returnList.get(position);
         final HashMap<String, Object> returnMap = taken.getTakenMap();
-        holder.returnName.setText("Sales Man : " + returnMap.get("sales_man_name").toString() + "\n" +
-                "Route : " + returnMap.get("sales_route").toString());
+        holder.returnName.setText("");
+        holder.returnName.append(
+                "Sales Man : " + returnMap.get(Constants.TAKEN_SALES_MAN_NAME).toString() +
+                        "\n" +
+                        "Route : " + returnMap.get(Constants.TAKEN_ROUTE).toString()
+        );
 
         holder.returnView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (returnMap.get("process").toString().equalsIgnoreCase("close")) {
+                if (returnMap.get(Constants.TAKEN_PROCESS).toString().
+                        equalsIgnoreCase(Constants.CLOSED)) {
                     Intent returnIntent = new Intent(context, ReturnActivity.class);
-                    returnIntent.putExtra("key", taken.getKey());
-                    returnIntent.putExtra("returnMap", returnMap);
+                    returnIntent.putExtra(Constants.KEY, taken.getKey());
+                    returnIntent.putExtra(Constants.TAKEN, returnMap);
                     returnIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(returnIntent);
                 }

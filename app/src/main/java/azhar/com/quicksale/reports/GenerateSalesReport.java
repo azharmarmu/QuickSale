@@ -1,4 +1,4 @@
-package azhar.com.quicksale.utils;
+package azhar.com.quicksale.reports;
 
 import android.app.Activity;
 import android.app.DownloadManager;
@@ -26,6 +26,8 @@ import java.io.FileOutputStream;
 import java.util.HashMap;
 
 import azhar.com.quicksale.R;
+import azhar.com.quicksale.utils.Constants;
+import azhar.com.quicksale.utils.DialogUtils;
 
 import static android.content.Context.DOWNLOAD_SERVICE;
 
@@ -112,10 +114,10 @@ public class GenerateSalesReport {
                 for (String itemName : items.keySet()) {
                     HashMap<String, Object> itemDetails = (HashMap<String, Object>) items.get(itemName);
                     document.add(createBodyTable(
-                            itemDetails.get(Constants.BILL_SALES_PRODUCT_NAME).toString(),
-                            itemDetails.get(Constants.BILL_SALES_PRODUCT_QTY).toString(),
-                            itemDetails.get(Constants.BILL_SALES_PRODUCT_RATE).toString(),
-                            itemDetails.get(Constants.BILL_SALES_PRODUCT_TOTAL).toString()));
+                            itemDetails.get(Constants.PRODUCT_NAME).toString(),
+                            itemDetails.get(Constants.PRODUCT_QTY).toString(),
+                            itemDetails.get(Constants.PRODUCT_RATE).toString(),
+                            itemDetails.get(Constants.PRODUCT_TOTAL).toString()));
                 }
 
                 /*Footer*/

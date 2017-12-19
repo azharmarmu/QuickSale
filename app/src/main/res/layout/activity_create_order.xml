@@ -86,12 +86,10 @@
                     android:hint="@string/gst_in"
                     android:inputType="textAutoComplete|textCapCharacters"
                     android:padding="8dp"
-                    android:textAllCaps="true"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
             </android.support.design.widget.TextInputLayout>
 
             <EditText
-                android:textAllCaps="true"
                 android:id="@+id/et_customer_address"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -116,31 +114,15 @@
                     android:gravity="center"
                     android:padding="16dp"
                     android:text="Product"
-                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
+                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
                     android:textColor="@color/colorWhite" />
 
                 <TextView
                     android:layout_weight="1"
                     android:gravity="center"
                     android:padding="16dp"
-                    android:text="Taken"
-                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
-                    android:textColor="@color/colorWhite" />
-
-                <TextView
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:text="Sold"
-                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
-                    android:textColor="@color/colorWhite" />
-
-                <TextView
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:text="Balance"
-                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Small"
+                    android:text="QTY"
+                    android:textAppearance="@style/Base.TextAppearance.AppCompat.Large"
                     android:textColor="@color/colorWhite" />
 
             </TableRow>

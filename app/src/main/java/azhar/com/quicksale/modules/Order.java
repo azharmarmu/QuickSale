@@ -1,142 +1,137 @@
 package azhar.com.quicksale.modules;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
+import android.app.Activity;
+import android.content.Intent;
+import android.support.annotation.NonNull;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import azhar.com.quicksale.R;
+import azhar.com.quicksale.activity.CreateOrderActivity;
+import azhar.com.quicksale.activity.LandingActivity;
+import azhar.com.quicksale.adapter.OrderAdapter;
+import azhar.com.quicksale.listeners.DateListener;
 import azhar.com.quicksale.model.OrderModel;
+import azhar.com.quicksale.utils.Constants;
+import azhar.com.quicksale.utils.DateUtils;
+import azhar.com.quicksale.utils.DialogUtils;
+
 
 /**
- * Created by azharuddin on 24/7/17.
+ * Created by azharuddin on 25/7/17.
  */
-@SuppressWarnings("unchecked")
 @SuppressLint("SimpleDateFormat")
-public class Order {
+@SuppressWarnings({"deprecation", "unchecked"})
+public class Order implements DateListener {
+    private List<OrderModel> orderList = new ArrayList<>();
+    private List<String> salesMan = new ArrayList<>();
 
-    private static List<OrderModel> orderList;
+    private Activity activity;
+    private View itemView;
+    private TextView datePicker;
 
-    public static void evaluate(final Context context, View itemView) {
+    public void evaluate(LandingActivity activity, View itemView) {
 
-       /* try {
-            final EditText datePicker = itemView.findViewById(R.id.et_date_picker);
+        try {
+            this.activity = activity;
+            this.itemView = itemView;
 
-            Date currentDate = new Date();
-            Calendar calendar = new GregorianCalendar();
-            calendar.setTime(currentDate);
-            int year = calendar.get(Calendar.YEAR);
-            int month = calendar.get(Calendar.MONTH) + 1;
-            int day = calendar.get(Calendar.DAY_OF_MONTH);
+            initViews();
 
-            if (month <= 9) {
-                datePicker.setText(day + "/" + "0" + (month) + "/" + year);
-            } else {
-                datePicker.setText(day + "/" + (month) + "/" + year);
-            }
-            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-            Date pickedDate = formatter.parse(datePicker.getText().toString());
+            new DateUtils().dateListener(this);
+            new DateUtils().currentDate(datePicker);
+            new DateUtils().datePicker(activity, datePicker);
 
-            changeMapToList(context, itemView, pickedDate);
+            changeMapToList(datePicker.getText().toString());
+
+            createOrder();
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
-        datePicker(context, itemView);
-
-        createOrder(context, itemView);*/
     }
 
-    /*private static void changeMapToList(Context context, View itemView, Date pickedDate) {
-        HashMap<String, Object> order = FireBaseAPI.order;
-        orderList = new ArrayList<>();
-        if (order != null) {
-            for (String key : order.keySet()) {
-                HashMap<String, Object> createdOrder = (HashMap<String, Object>) order.get(key);
-                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-                try {
-                    Date salesDate = formatter.parse(createdOrder.get("order_date").toString());
-                    if (pickedDate.compareTo(salesDate) == 0) {
-                        orderList.add(new OrderModel(key, createdOrder));
-                    }
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        populateTaken(context, itemView);
+    private void initViews() {
+        datePicker = itemView.findViewById(R.id.et_date_picker);
     }
 
-    @SuppressLint("SimpleDateFormat")
-    private static void datePicker(final Context context, final View itemView) {
-        final EditText datePicker = itemView.findViewById(R.id.et_date_picker);
+    private void changeMapToList(String pickedDate) {
+        DialogUtils.showProgressDialog(activity, activity.getString(R.string.loading));
+        FirebaseFirestore.getInstance()
+                .collection(Constants.ORDER)
+                .whereEqualTo(Constants.ORDER_DATE, pickedDate)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    TextView noOrder = itemView.findViewById(R.id.no_view);
+                    RecyclerView orderView = itemView.findViewById(R.id.rv_orders);
 
-        datePicker.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                final Calendar c = Calendar.getInstance();
-                final int mYear = c.get(Calendar.YEAR);
-                final int mMonth = c.get(Calendar.MONTH);
-                final int mDay = c.get(Calendar.DAY_OF_MONTH);
-
-                DatePickerDialog datePickerDialog = new DatePickerDialog(context,
-                        new DatePickerDialog.OnDateSetListener() {
-
-                            @Override
-                            public void onDateSet(DatePicker view, int year,
-                                                  int monthOfYear, int dayOfMonth) {
-                                String pYear = String.valueOf(year);
-                                String pMonth = String.valueOf(monthOfYear + 1);
-                                String pDay = String.valueOf(dayOfMonth);
-
-                                String cYear = String.valueOf(mYear);
-                                String cMonth = String.valueOf(mMonth + 1);
-                                String cDay = String.valueOf(mDay);
-
-                                SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-                                try {
-                                    Date pickedDate = formatter.parse((pDay + "-" + pMonth + "-" + pYear));
-                                    Date currentDate = formatter.parse((cDay + "-" + cMonth + "-" + cYear));
-                                    if (pickedDate.compareTo(currentDate) <= 0) {
-                                        if ((monthOfYear + 1) <= 9) {
-                                            datePicker.setText(dayOfMonth + "/0" + (monthOfYear + 1) + "/" + year);
-                                        } else {
-                                            datePicker.setText(dayOfMonth + "/" +(monthOfYear + 1) + "/" + year);
-                                        }
-                                        datePicker.clearFocus();
-                                        changeMapToList(context, itemView, pickedDate);
-                                    } else {
-                                        datePicker.setError("Choose Valid date");
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        orderList.clear();
+                        DialogUtils.dismissProgressDialog();
+                        if (task.isSuccessful()) {
+                            for (DocumentSnapshot document : task.getResult()) {
+                                Log.d(activity.getString(R.string.result),
+                                        document.getId() + " => " + document.getData());
+                                if (document.contains(Constants.ORDER_SALES_MAN_NAME)) {
+                                    salesMan = (List<String>) document.get(Constants.ORDER_SALES_MAN_NAME);
+                                    for (int i = 0; i < salesMan.size(); i++) {
+                                        orderList.add(new OrderModel(document.getId(),
+                                                (HashMap<String, Object>) document.getData()));
                                     }
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
                                 }
                             }
-                        }, mYear, mMonth, mDay);
-                datePickerDialog.show();
-            }
-        });
+                            if (orderList.size() > 0) {
+                                noOrder.setVisibility(View.GONE);
+                                orderView.setVisibility(View.VISIBLE);
+                                populateTaken();
+                            } else {
+                                noOrder.setVisibility(View.VISIBLE);
+                                orderView.setVisibility(View.GONE);
+                            }
+                        }
+                    }
+                });
     }
 
-    private static void populateTaken(Context context, View itemView) {
-
-        OrderAdapter adapter = new OrderAdapter(context, orderList);
+    private void populateTaken() {
+        OrderAdapter adapter = new OrderAdapter(activity, orderList);
         RecyclerView orderView = itemView.findViewById(R.id.rv_orders);
         orderView.removeAllViews();
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(context);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(activity);
         orderView.setLayoutManager(layoutManager);
         orderView.setItemAnimator(new DefaultItemAnimator());
         orderView.setAdapter(adapter);
     }
 
-    private static void createOrder(final Context context, View itemView) {
+    private void createOrder() {
         TextView createOrder = itemView.findViewById(R.id.btn_create_order);
         createOrder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(context, CreateOrderActivity.class);
-                context.startActivity(intent);
+                Intent intent = new Intent(activity, CreateOrderActivity.class);
+                activity.startActivity(intent);
             }
         });
-    }*/
+    }
+
+    @Override
+    public void getDate(String date) {
+        changeMapToList(date);
+    }
 }

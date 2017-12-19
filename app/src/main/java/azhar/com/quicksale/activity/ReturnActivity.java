@@ -13,14 +13,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import azhar.com.quicksale.R;
+import azhar.com.quicksale.utils.Constants;
 
 @SuppressWarnings({"unchecked", "deprecation"})
 public class ReturnActivity extends AppCompatActivity {
     String key;
     HashMap<String, Object> returnMap = new HashMap<>();
     HashMap<String, Object> takenItems = new HashMap<>();
-    HashMap<String, Object> itemDetailsQTY = new HashMap<>();
-    HashMap<String, Object> itemDetailsQTYLeft = new HashMap<>();
+    HashMap<String, Object> sales = new HashMap<>();
 
     TextView salesManListView;
     TextView route;
@@ -32,27 +32,26 @@ public class ReturnActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_return);
 
-        salesManListView = (TextView) findViewById(R.id.sales_man_list);
-        route = (TextView) findViewById(R.id.tv_route_name);
-        tableLayout = (TableLayout) findViewById(R.id.table_layout);
+        salesManListView = findViewById(R.id.sales_man_list);
+        route = findViewById(R.id.tv_route_name);
+        tableLayout = findViewById(R.id.table_layout);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            key = extras.getString("key");
-            returnMap = (HashMap<String, Object>) extras.getSerializable("returnMap");
+            key = extras.getString(Constants.KEY);
+            returnMap = (HashMap<String, Object>) extras.getSerializable(Constants.TAKEN);
             if (returnMap != null) {
-                salesMan = (List<String>) returnMap.get("sales_man_name");
+                salesMan = (List<String>) returnMap.get(Constants.TAKEN_SALES_MAN_NAME);
                 populateSalesMan(salesMan);
-                route.append("Route: " + returnMap.get("sales_route"));
-                itemDetailsQTY = (HashMap<String, Object>) returnMap.get("sales_order_qty");
-                itemDetailsQTYLeft = (HashMap<String, Object>) returnMap.get("sales_order_qty_left");
+                route.append("Route: " + returnMap.get(Constants.TAKEN_ROUTE));
+                sales = (HashMap<String, Object>) returnMap.get(Constants.TAKEN_SALES);
                 populateItemsDetails();
             }
         }
     }
 
     private void populateItemsDetails() {
-        for (String prodKey : itemDetailsQTY.keySet()) {
+        for (String prodKey : sales.keySet()) {
             /* Create a TableRow dynamically */
             TableRow tr = new TableRow(this);
             tr.setBackgroundColor(getApplicationContext().getResources().getColor(R.color.colorLightWhite));
@@ -66,9 +65,11 @@ public class ReturnActivity extends AppCompatActivity {
                     ViewGroup.LayoutParams.MATCH_PARENT);
             params.weight = 1.0f;
 
-            int takenQty = Integer.parseInt(itemDetailsQTY.get(prodKey).toString());
-            int leftQty = Integer.parseInt(itemDetailsQTYLeft.get(prodKey).toString());
-            int soldQty = takenQty - leftQty;
+            HashMap<String, Object> itemsDetails = (HashMap<String, Object>) sales.get(prodKey);
+
+            int qty = Integer.parseInt(itemsDetails.get(Constants.TAKEN_SALES_QTY).toString());
+            int stockQty = Integer.parseInt(itemsDetails.get(Constants.TAKEN_SALES_QTY_STOCK).toString());
+            int soldQty = qty - stockQty;
 
                        /* Product Name --> TextView */
             TextView name = new TextView(getApplicationContext());
@@ -88,7 +89,7 @@ public class ReturnActivity extends AppCompatActivity {
 
             taken.setTextColor(getApplicationContext().getResources().getColor(R.color.colorLightBlack));
             taken.setPadding(16, 16, 16, 16);
-            taken.setText(String.valueOf(takenQty));
+            taken.setText(String.valueOf(qty));
             taken.setGravity(Gravity.CENTER);
             taken.setInputType(InputType.TYPE_CLASS_NUMBER);
             taken.setBackgroundColor(getApplicationContext().getResources().getColor(android.R.color.transparent));
@@ -112,7 +113,7 @@ public class ReturnActivity extends AppCompatActivity {
 
             left.setTextColor(getApplicationContext().getResources().getColor(R.color.colorLightBlack));
             left.setPadding(16, 16, 16, 16);
-            left.setText(String.valueOf(leftQty));
+            left.setText(String.valueOf(stockQty));
             left.setGravity(Gravity.CENTER);
             left.setInputType(InputType.TYPE_CLASS_NUMBER);
             left.setBackgroundColor(getApplicationContext().getResources().getColor(android.R.color.transparent));
