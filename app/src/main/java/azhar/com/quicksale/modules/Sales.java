@@ -35,10 +35,9 @@ import azhar.com.quicksale.R;
 import azhar.com.quicksale.activity.LandingActivity;
 import azhar.com.quicksale.activity.PartySalesDisplay;
 import azhar.com.quicksale.listeners.DateListener;
+import azhar.com.quicksale.reports.GenerateSalesReport;
 import azhar.com.quicksale.utils.Constants;
 import azhar.com.quicksale.utils.DateUtils;
-import azhar.com.quicksale.utils.DialogUtils;
-import azhar.com.quicksale.reports.GenerateSalesReport;
 import azhar.com.quicksale.utils.Permissions;
 
 
@@ -59,9 +58,11 @@ public class Sales implements DateListener {
     private Activity activity;
     private View itemView;
 
-    private TextView datePicker, allTAG, routeTAG, partyTAG, productTAG, tvCashAmount, tvCreditAmount;
+    private TextView datePicker, allTAG, routeTAG, partyTAG, productTAG, tvCashAmount, tvCreditAmount, generateReport;
     private RelativeLayout spinnerLayout;
     private TableLayout productTable, partyTable;
+    private LinearLayout productContainer, partyContainer;
+    private View noTaken;
 
     @SuppressLint("SetTextI18n")
     public void evaluate(LandingActivity activity, View itemView) {
@@ -97,6 +98,10 @@ public class Sales implements DateListener {
         productTable = itemView.findViewById(R.id.tl_product);
         tvCashAmount = itemView.findViewById(R.id.tv_cash_sale);
         tvCreditAmount = itemView.findViewById(R.id.tv_credit_sale);
+        generateReport = itemView.findViewById(R.id.tv_generate_report);
+        productContainer = itemView.findViewById(R.id.product_container);
+        partyContainer = itemView.findViewById(R.id.party_container);
+        noTaken = itemView.findViewById(R.id.no_view);
     }
 
     private void routeTagClickHandle() {
@@ -171,7 +176,7 @@ public class Sales implements DateListener {
                         if (task.isSuccessful()) {
                             for (final DocumentSnapshot document : task.getResult()) {
                                 if (document.contains(Constants.BILL_ROUTE) &&
-                                        routeList.contains(document.get(Constants.BILL_ROUTE).toString())) {
+                                        !routeList.contains(document.get(Constants.BILL_ROUTE).toString())) {
                                     routeList.add(document.get(Constants.BILL_ROUTE).toString());
                                 }
                             }
@@ -214,7 +219,6 @@ public class Sales implements DateListener {
 
 
     private void generateReport() {
-        TextView generateReport = itemView.findViewById(R.id.tv_generate_report);
         generateReport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -261,8 +265,6 @@ public class Sales implements DateListener {
             tvCashAmount.setText("");
             tvCreditAmount.setText("");
 
-            DialogUtils.showProgressDialog(activity, "Loading...");
-
             if (RouteTAG.equalsIgnoreCase(Constants.ROUTE)) {
                 FirebaseFirestore.getInstance()
                         .collection(Constants.BILLING)
@@ -273,20 +275,24 @@ public class Sales implements DateListener {
                         .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                DialogUtils.dismissProgressDialog();
+                                productContainer.setVisibility(View.GONE);
+                                partyContainer.setVisibility(View.GONE);
+                                noTaken.setVisibility(View.GONE);
                                 if (task.isSuccessful()) {
                                     salesTask = task;
-                                    LinearLayout productContainer = itemView.findViewById(R.id.product_container);
-                                    LinearLayout partyContainer = itemView.findViewById(R.id.party_container);
-                                    productContainer.setVisibility(View.GONE);
-                                    partyContainer.setVisibility(View.GONE);
-                                    if (SalesTAG.equalsIgnoreCase(Constants.PARTY)) {
-                                        partyContainer.setVisibility(View.VISIBLE);
-                                        populateParty();
-                                    } else if (SalesTAG.equalsIgnoreCase(Constants.PRODUCT)) {
-                                        productContainer.setVisibility(View.VISIBLE);
-                                        populateProduct();
+                                    if (!salesTask.getResult().isEmpty()) {
+                                        if (SalesTAG.equalsIgnoreCase(Constants.PARTY)) {
+                                            partyContainer.setVisibility(View.VISIBLE);
+                                            populateParty();
+                                        } else if (SalesTAG.equalsIgnoreCase(Constants.PRODUCT)) {
+                                            productContainer.setVisibility(View.VISIBLE);
+                                            populateProduct();
+                                        }
+                                    } else {
+                                        setViewGone();
                                     }
+                                } else {
+                                    setViewGone();
                                 }
                             }
                         });
@@ -300,20 +306,24 @@ public class Sales implements DateListener {
                         .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                DialogUtils.dismissProgressDialog();
+                                productContainer.setVisibility(View.GONE);
+                                partyContainer.setVisibility(View.GONE);
                                 if (task.isSuccessful()) {
                                     salesTask = task;
-                                    LinearLayout productContainer = itemView.findViewById(R.id.product_container);
-                                    LinearLayout partyContainer = itemView.findViewById(R.id.party_container);
-                                    productContainer.setVisibility(View.GONE);
-                                    partyContainer.setVisibility(View.GONE);
-                                    if (SalesTAG.equalsIgnoreCase(Constants.PARTY)) {
-                                        partyContainer.setVisibility(View.VISIBLE);
-                                        populateParty();
-                                    } else if (SalesTAG.equalsIgnoreCase(Constants.PRODUCT)) {
-                                        productContainer.setVisibility(View.VISIBLE);
-                                        populateProduct();
+                                    if (!salesTask.getResult().isEmpty()) {
+                                        setViewVisible();
+                                        if (SalesTAG.equalsIgnoreCase(Constants.PARTY)) {
+                                            partyContainer.setVisibility(View.VISIBLE);
+                                            populateParty();
+                                        } else if (SalesTAG.equalsIgnoreCase(Constants.PRODUCT)) {
+                                            productContainer.setVisibility(View.VISIBLE);
+                                            populateProduct();
+                                        }
+                                    } else {
+                                        setViewGone();
                                     }
+                                } else {
+                                    setViewGone();
                                 }
                             }
                         });
@@ -322,6 +332,20 @@ public class Sales implements DateListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void setViewGone() {
+        tvCashAmount.setVisibility(View.GONE);
+        tvCreditAmount.setVisibility(View.GONE);
+        generateReport.setVisibility(View.GONE);
+        noTaken.setVisibility(View.VISIBLE);
+    }
+
+    private void setViewVisible() {
+        tvCashAmount.setVisibility(View.VISIBLE);
+        tvCreditAmount.setVisibility(View.VISIBLE);
+        generateReport.setVisibility(View.VISIBLE);
+        noTaken.setVisibility(View.GONE);
     }
 
     private void populateParty() {

@@ -11,7 +11,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.airbnb.lottie.LottieAnimationView;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,7 +31,6 @@ import azhar.com.quicksale.listeners.DateListener;
 import azhar.com.quicksale.model.TakenModel;
 import azhar.com.quicksale.utils.Constants;
 import azhar.com.quicksale.utils.DateUtils;
-import azhar.com.quicksale.utils.DialogUtils;
 
 /**
  * Created by azharuddin on 25/7/17.
@@ -73,19 +71,16 @@ public class Taken implements DateListener {
     }
 
     private void changeMapToList(String pickedDate) {
-        DialogUtils.showProgressDialog(activity, activity.getString(R.string.loading));
         FirebaseFirestore.getInstance()
                 .collection(Constants.TAKEN)
                 .whereEqualTo(Constants.TAKEN_DATE, pickedDate)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                    LottieAnimationView noTaken = itemView.findViewById(R.id.no_view);
+                    View noTaken = itemView.findViewById(R.id.no_view);
                     RecyclerView takenView = itemView.findViewById(R.id.rv_taken);
 
                     @Override
                     public void onEvent(@Nullable QuerySnapshot value,
                                         @Nullable FirebaseFirestoreException e) {
-                        DialogUtils.dismissProgressDialog();
-                        noTaken.playAnimation();
                         if (e != null) {
                             Log.w("Error", "Listen failed.", e);
                             return;

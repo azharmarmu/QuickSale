@@ -105,8 +105,13 @@ public class GenerateSalesReport {
                     totalBill += Integer.parseInt(billNetTotal);
                 }
                 /*Header*/
-                String customerDetails = customer.get(Constants.CUSTOMER_NAME).toString() + "\n" +
-                        customer.get(Constants.CUSTOMER_GST).toString();
+                String customerDetails;
+                if (customer.containsKey(Constants.CUSTOMER_GST)) {
+                    customerDetails = customer.get(Constants.CUSTOMER_NAME).toString() + "\n" +
+                            customer.get(Constants.CUSTOMER_GST).toString();
+                } else {
+                    customerDetails = customer.get(Constants.CUSTOMER_NAME).toString();
+                }
 
                 document.add(createHeaderTable(billNo, customerDetails, billDate));
 

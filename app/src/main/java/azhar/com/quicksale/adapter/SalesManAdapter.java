@@ -1,14 +1,16 @@
 package azhar.com.quicksale.adapter;
 
 import android.annotation.SuppressLint;
+import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -74,7 +76,7 @@ public class SalesManAdapter extends RecyclerView.Adapter<SalesManAdapter.MyView
             holder.salesEdit.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    alertDialog(men.getName(), men.getPhone(), position);
+                    editCustomerDialog(men, position);
                 }
             });
 
@@ -128,59 +130,61 @@ public class SalesManAdapter extends RecyclerView.Adapter<SalesManAdapter.MyView
         }
     }
 
-    @SuppressLint("InflateParams")
-    private void alertDialog(final String originalName, final String originalPhone, final int position) {
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-        final HashMap<String, Object> salesMan = new HashMap<>();
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        assert inflater != null;
-        final View dialogView = inflater.inflate(R.layout.dialog_sales_man, null);
-        dialogBuilder.setView(dialogView);
+    private void editCustomerDialog(final SalesManModel salesManModel, int position) {
+        final Dialog dialog = new Dialog(context, R.style.DialogTheme);
+        dialog.setContentView(R.layout.fragment_add_sales_man);
 
-        final EditText name = dialogView.findViewById(R.id.et_sales_man_name);
-        final EditText phone = dialogView.findViewById(R.id.et_sales_man_phone);
+        Window window = dialog.getWindow();
+        assert window != null;
+        WindowManager.LayoutParams layoutParams = window.getAttributes();
+        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.gravity = Gravity.TOP;
 
-        name.setText(originalName);
-        phone.setText(originalPhone);
+        final EditText name = dialog.findViewById(R.id.et_sales_man_name);
+        final EditText phone = dialog.findViewById(R.id.et_sales_man_phone);
+        phone.setKeyListener(null);
 
-        dialogBuilder.setTitle("Details");
-        dialogBuilder.setMessage("Edit Sales Man");
-        dialogBuilder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
+        name.append(salesManModel.getName());
+        phone.append(salesManModel.getPhone());
+
+        TextView addSalesMan = dialog.findViewById(R.id.btn_add_sales_man);
+        addSalesMan.setText("");
+        addSalesMan.append("Update");
+        addSalesMan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //delete customer
+                final String key = salesManModel.getKey();
+                SalesManApi.salesManDBRef.child(key).removeValue();
 
                 String salesManName = name.getText().toString();
                 String salesManPhone = phone.getText().toString();
-                if (!salesManName.isEmpty() &&
-                        !salesManPhone.isEmpty()) {
-                    SalesManApi.salesManDBRef.child(originalPhone).removeValue();
-                    salesManList.remove(position);
-                    salesManList.add(new SalesManModel(salesManPhone, salesManName, salesManPhone));
-                    salesMan.put("sales_man_name", salesManName);
-                    salesMan.put("sales_man_phone", salesManPhone);
-                    SalesManApi.salesManDBRef.child(salesManPhone).
-                            updateChildren(salesMan)
+                HashMap<String, Object> salesManMap = new HashMap<>();
+                if (!salesManName.isEmpty()
+                        && !salesManPhone.isEmpty()) {
+                    salesManMap.put(Constants.SALES_MAN_NAME, salesManName);
+                    salesManMap.put(Constants.SALES_MAN_PHONE, salesManPhone);
+                    name.setText("");
+                    phone.setText("");
+                    SalesManApi.salesManDBRef.child(salesManPhone)
+                            .updateChildren(salesManMap)
                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
                                         DialogUtils.appToastShort(context,
-                                                "Sales man updated");
+                                                "Sales Man updated");
                                     } else {
                                         DialogUtils.appToastShort(context,
-                                                "Sales man not updated");
+                                                "Sales Man not updated");
                                     }
                                 }
                             });
-                    notifyDataSetChanged();
                 }
+                dialog.dismiss();
             }
         });
-        dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                //pass
-            }
-        });
-        AlertDialog b = dialogBuilder.create();
-        b.show();
+        dialog.show();
     }
 }

@@ -3,9 +3,7 @@ package azhar.com.quicksale.adapter;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -25,6 +23,7 @@ import java.util.List;
 import azhar.com.quicksale.R;
 import azhar.com.quicksale.api.CustomerApi;
 import azhar.com.quicksale.model.CustomerModel;
+import azhar.com.quicksale.utils.Constants;
 import azhar.com.quicksale.utils.DialogUtils;
 
 /**
@@ -61,7 +60,6 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.MyView
             @Override
             public void onClick(View view) {
                 editCustomerDialog(customer, position);
-                //alertDialog(customer, position);
             }
         });
 
@@ -94,59 +92,6 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.MyView
         }
     }
 
-    @SuppressLint("InflateParams")
-    private void alertDialog(CustomerModel customer, final int position) {
-        final String key = customer.getKey();
-        String name = customer.getName();
-        String phone = customer.getPhone();
-        String gst = customer.getGst();
-
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        assert inflater != null;
-        final View dialogView = inflater.inflate(R.layout.dialog_customer, null);
-        dialogBuilder.setView(dialogView);
-
-        final EditText etName = dialogView.findViewById(R.id.et_customer_name);
-        final EditText etPhone = dialogView.findViewById(R.id.et_customer_phone);
-        final EditText etGst = dialogView.findViewById(R.id.et_customer_gst);
-
-        etName.setText(name);
-        etPhone.setText(phone);
-        etGst.setText(gst);
-
-        dialogBuilder.setTitle("Details");
-        dialogBuilder.setMessage("Edit Customer");
-        dialogBuilder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-
-                String CustomerName = etName.getText().toString();
-                String CustomerPhone = etPhone.getText().toString();
-                String CustomerGst = etGst.getText().toString();
-                if (!CustomerName.isEmpty() && !CustomerPhone.isEmpty() && !CustomerGst.isEmpty()) {
-                    CustomerApi.customerDBRef.child(key).removeValue();
-                    customerList.remove(position);
-                    customerList.add(new CustomerModel(key, CustomerName, CustomerPhone, CustomerGst));
-
-                    HashMap<String, Object> customerMap = new HashMap<>();
-                    customerMap.put("customer_name", CustomerName);
-                    customerMap.put("customer_phone", CustomerPhone);
-                    customerMap.put("customer_gst", CustomerGst);
-
-                    CustomerApi.customerDBRef.child(key).updateChildren(customerMap);
-                    notifyDataSetChanged();
-                }
-            }
-        });
-        dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                //pass
-            }
-        });
-        AlertDialog b = dialogBuilder.create();
-        b.show();
-    }
-
     private void editCustomerDialog(final CustomerModel customerModel, int position) {
         final Dialog dialog = new Dialog(context, R.style.DialogTheme);
         dialog.setContentView(R.layout.fragment_add_customer);
@@ -156,10 +101,21 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.MyView
         WindowManager.LayoutParams layoutParams = window.getAttributes();
         window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.gravity = Gravity.BOTTOM;
+        layoutParams.gravity = Gravity.TOP;
+
+        final EditText name = dialog.findViewById(R.id.et_customer_name);
+        final EditText address = dialog.findViewById(R.id.et_customer_address);
+        final EditText gst = dialog.findViewById(R.id.et_customer_gst);
+
+        gst.setKeyListener(null);
+
+        name.append(customerModel.getName());
+        address.append(customerModel.getAddress());
+        gst.append(customerModel.getGst());
 
         TextView addCustomer = dialog.findViewById(R.id.btn_add_customer);
-        addCustomer.setText("Update");
+        addCustomer.setText("");
+        addCustomer.append("Update");
         addCustomer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -169,10 +125,6 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.MyView
 
                 HashMap<String, Object> customer = CustomerApi.customer;
 
-                EditText name = dialog.findViewById(R.id.et_customer_name);
-                EditText address = dialog.findViewById(R.id.et_customer_address);
-                EditText gst = dialog.findViewById(R.id.et_customer_gst);
-
                 String customerName = name.getText().toString();
                 String customerAddress = address.getText().toString();
                 String customerGst = gst.getText().toString();
@@ -180,31 +132,26 @@ public class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.MyView
                 if (!customerName.isEmpty()
                         && !customerAddress.isEmpty()
                         && !customerGst.isEmpty()) {
-                    if (!customer.containsKey(customerGst)) {
-                        customerMap.put("customer_name", customerName);
-                        customerMap.put("customer_address", customerAddress);
-                        customerMap.put("customer_gst", customerGst);
-                        name.setText("");
-                        address.setText("");
-                        gst.setText("");
-                        CustomerApi.customerDBRef.child(customerGst)
-                                .updateChildren(customerMap)
-                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if (task.isSuccessful()) {
-                                            DialogUtils.appToastShort(context,
-                                                    "Customer updated");
-                                        } else {
-                                            DialogUtils.appToastShort(context,
-                                                    "Customer not updated");
-                                        }
+                    customerMap.put(Constants.CUSTOMER_NAME, customerName);
+                    customerMap.put(Constants.CUSTOMER_ADDRESS, customerAddress);
+                    customerMap.put(Constants.CUSTOMER_GST, customerGst);
+                    name.setText("");
+                    address.setText("");
+                    gst.setText("");
+                    CustomerApi.customerDBRef.child(customerGst)
+                            .updateChildren(customerMap)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        DialogUtils.appToastShort(context,
+                                                "Customer updated");
+                                    } else {
+                                        DialogUtils.appToastShort(context,
+                                                "Customer not updated");
                                     }
-                                });
-                    }
-                } else {
-                    name.setError("Customer already exists");
-                    name.requestFocus();
+                                }
+                            });
                 }
                 dialog.dismiss();
             }

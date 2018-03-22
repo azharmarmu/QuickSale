@@ -5,12 +5,12 @@ package azhar.com.quicksale.model;
  */
 
 public class CustomerModel {
-    private String key, name, phone, gst;
+    private String key, name, address, gst;
 
-    public CustomerModel(String key, String name, String phone, String gst) {
+    public CustomerModel(String key, String name, String address, String gst) {
         this.key = key;
         this.name = name;
-        this.phone = phone;
+        this.address = address;
         this.gst = gst;
     }
 
@@ -22,8 +22,8 @@ public class CustomerModel {
         return name;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getAddress() {
+        return address;
     }
 
     public String getGst() {

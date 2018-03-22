@@ -2,10 +2,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="16dp">
 
     <EditText
-        android:id="@+id/et_customer_name"
+        android:id="@+id/et_company_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
@@ -15,9 +15,8 @@
         android:textAllCaps="true"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
-
     <EditText
-        android:id="@+id/et_customer_phone"
+        android:id="@+id/et_company_phone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -30,15 +29,25 @@
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
     <EditText
-        android:id="@+id/et_customer_gst"
+        android:id="@+id/et_company_mail"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:hint="GST-IN"
-        android:inputType="textAutoComplete|textCapCharacters"
+        android:hint="Mail"
+        android:inputType="textEmailAddress"
         android:padding="8dp"
         android:textAllCaps="true"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
+    <TextView
+        android:id="@+id/btn_set_admin_details"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="@drawable/box_white_thick_border_corner_ripple"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="SET"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium" />
 
 </LinearLayout>

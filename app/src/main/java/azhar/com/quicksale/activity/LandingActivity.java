@@ -1,8 +1,6 @@
 package azhar.com.quicksale.activity;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.app.Dialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -10,15 +8,15 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.InputType;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -44,6 +42,7 @@ import azhar.com.quicksale.modules.Return;
 import azhar.com.quicksale.modules.Sales;
 import azhar.com.quicksale.modules.Setup;
 import azhar.com.quicksale.modules.Taken;
+import azhar.com.quicksale.utils.Constants;
 
 public class LandingActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -67,7 +66,6 @@ public class LandingActivity extends AppCompatActivity
         new ProductsApi().setProductsListener(this);
         new BillNoApi().setBillNoListener(this);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle("Taken");
@@ -116,7 +114,7 @@ public class LandingActivity extends AppCompatActivity
             nav.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    alertDialog(name, number, mail);
+                    editCustomerDialog(name, number, mail);
                 }
             });
         } catch (NullPointerException e) {
@@ -124,54 +122,48 @@ public class LandingActivity extends AppCompatActivity
         }
     }
 
-    @SuppressLint("InflateParams")
-    private void alertDialog(String name, String number, String mail) {
+    private void editCustomerDialog(String name, String number, String mail) {
+        final Dialog dialog = new Dialog(LandingActivity.this, R.style.DialogTheme);
+        dialog.setContentView(R.layout.dialog_company);
 
-        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(LandingActivity.this);
-        final HashMap<String, Object> customerMap = new HashMap<>();
-        LayoutInflater inflater = (LayoutInflater) LandingActivity.this
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        assert inflater != null;
-        final View dialogView = inflater.inflate(R.layout.dialog_customer, null);
-        dialogBuilder.setView(dialogView);
+        Window window = dialog.getWindow();
+        assert window != null;
+        WindowManager.LayoutParams layoutParams = window.getAttributes();
+        window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        layoutParams.gravity = Gravity.TOP;
 
-        final EditText etName = dialogView.findViewById(R.id.et_customer_name);
-        final EditText etPhone = dialogView.findViewById(R.id.et_customer_phone);
-        final EditText etMail = dialogView.findViewById(R.id.et_customer_gst);
+        final EditText etName = dialog.findViewById(R.id.et_company_name);
+        final EditText etPhone = dialog.findViewById(R.id.et_company_phone);
+        final EditText etMail = dialog.findViewById(R.id.et_company_mail);
 
         etName.setText(name);
         etPhone.setText(number);
         etMail.setText(mail);
-        etMail.setHint("E-Mail");
-        etMail.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
 
-        dialogBuilder.setTitle("Details");
-        dialogBuilder.setMessage("Edit Customer");
-        dialogBuilder.setPositiveButton("Done", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-
+        TextView setAdminDetails = dialog.findViewById(R.id.btn_set_admin_details);
+        setAdminDetails.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
                 String compName = etName.getText().toString();
                 String compPhone = etPhone.getText().toString();
                 String compMail = etMail.getText().toString();
                 if (!compName.isEmpty() && !compPhone.isEmpty() && !compMail.isEmpty()) {
                     CompanyApi.companyDBRef.removeValue();
-                    customerMap.put("name", compName);
-                    customerMap.put("phone", compPhone);
-                    customerMap.put("email", compMail);
-                    CompanyApi.companyDBRef.updateChildren(customerMap);
+                    HashMap<String, Object> companyMap = new HashMap<>();
+                    companyMap.put(Constants.COMPANY_NAME, compName);
+                    companyMap.put(Constants.COMPANY_PHONE, compPhone);
+                    companyMap.put(Constants.COMPANY_EMAIL, compMail);
+                    CompanyApi.companyDBRef.updateChildren(companyMap);
                     companyName.setText(compName.toUpperCase());
                     companyPhone.setText(compPhone);
                     companyMail.setText(compMail);
+
+                    dialog.dismiss();
                 }
             }
         });
-        dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int whichButton) {
-                //pass
-            }
-        });
-        AlertDialog b = dialogBuilder.create();
-        b.show();
+        dialog.show();
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -262,25 +254,6 @@ public class LandingActivity extends AppCompatActivity
                 break;
         }
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.landing, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
 
     boolean doubleBackToExitPressedOnce = false;
 

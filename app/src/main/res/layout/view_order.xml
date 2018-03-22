@@ -4,17 +4,12 @@
     android:layout_height="match_parent"
     android:padding="@dimen/activity_horizontal_margin">
 
-    <TextView
+    <include
         android:id="@+id/no_view"
+        layout="@layout/no_view_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:padding="@dimen/activity_horizontal_margin"
-        android:text="No Order"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textColor="@color/colorLightBlack"
-        android:visibility="visible" />
+        android:layout_centerInParent="true" />
 
     <TextView
         android:id="@+id/btn_create_order"
@@ -34,19 +29,19 @@
         android:layout_below="@+id/btn_create_order"
         android:background="@color/colorAccent" />
 
-    <TextView
-        android:id="@+id/et_date_picker"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/view"
-        android:layout_gravity="center"
-        android:layout_marginTop="@dimen/activity_horizontal_margin"
-        android:background="@drawable/box_white_thick_border_corner_ripple"
-        android:ems="10"
-        android:hint="@string/date"
-        android:padding="8dp"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
-        android:textColor="@color/colorLightBlack" />
+        <TextView
+            android:id="@+id/et_date_picker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/view"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/activity_horizontal_margin"
+            android:background="@drawable/box_white_thick_border_corner_ripple"
+            android:ems="10"
+            android:hint="@string/date"
+            android:padding="8dp"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Medium"
+            android:textColor="@color/colorLightBlack" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_orders"

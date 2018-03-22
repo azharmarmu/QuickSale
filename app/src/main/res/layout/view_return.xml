@@ -4,17 +4,12 @@
     android:layout_height="match_parent"
     android:padding="@dimen/activity_horizontal_margin">
 
-    <TextView
+    <include
         android:id="@+id/no_view"
+        layout="@layout/no_view_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:padding="@dimen/activity_horizontal_margin"
-        android:text="No Taken"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textColor="@color/colorLightBlack"
-        android:visibility="visible" />
+        android:layout_centerInParent="true" />
 
     <TextView
         android:id="@+id/et_date_picker"

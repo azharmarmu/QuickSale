@@ -31,7 +31,7 @@ public class PartySalesDisplay extends AppCompatActivity {
                 HashMap<String, Object> party = (HashMap<String, Object>) partySalesDisplay.get(Constants.BILL_CUSTOMER);
 
                 TextView tvPartyName = findViewById(R.id.sales_man_list);
-                tvPartyName.setText(party.get(Constants.CUSTOMER_GST).toString());
+                tvPartyName.setText(party.get(Constants.CUSTOMER_NAME).toString());
                 if (party.containsKey(Constants.CUSTOMER_GST)) {
                     TextView tvPartyGST = findViewById(R.id.gst);
                     tvPartyGST.append("GSTIN: " + party.get(Constants.CUSTOMER_GST));

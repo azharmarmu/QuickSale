@@ -28,7 +28,6 @@ import azhar.com.quicksale.listeners.DateListener;
 import azhar.com.quicksale.model.TakenModel;
 import azhar.com.quicksale.utils.Constants;
 import azhar.com.quicksale.utils.DateUtils;
-import azhar.com.quicksale.utils.DialogUtils;
 
 /**
  * Created by azharuddin on 25/7/17.
@@ -68,19 +67,17 @@ public class Return implements DateListener {
     }
 
     private void changeMapToList(String pickedDate) {
-        DialogUtils.showProgressDialog(activity, activity.getString(R.string.loading));
         FirebaseFirestore.getInstance()
                 .collection(Constants.TAKEN)
                 .whereEqualTo(Constants.TAKEN_DATE, pickedDate)
                 .whereEqualTo(Constants.TAKEN_PROCESS, Constants.CLOSED)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                    TextView noReturn = itemView.findViewById(R.id.no_view);
+                    View noReturn = itemView.findViewById(R.id.no_view);
                     RecyclerView returnView = itemView.findViewById(R.id.rv_return);
 
                     @Override
                     public void onEvent(@Nullable QuerySnapshot value,
                                         @Nullable FirebaseFirestoreException e) {
-                        DialogUtils.dismissProgressDialog();
                         if (e != null) {
                             Log.w("Error", "Listen failed.", e);
                             return;
@@ -108,7 +105,6 @@ public class Return implements DateListener {
 
 
     private void populateReturn() {
-
         ReturnAdapter adapter = new ReturnAdapter(activity, returnList);
         RecyclerView returnView = itemView.findViewById(R.id.rv_return);
         returnView.removeAllViews();

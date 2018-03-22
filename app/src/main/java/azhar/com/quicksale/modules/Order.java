@@ -77,7 +77,7 @@ public class Order implements DateListener {
                 .whereEqualTo(Constants.ORDER_DATE, pickedDate)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    TextView noOrder = itemView.findViewById(R.id.no_view);
+                    View noOrder = itemView.findViewById(R.id.no_view);
                     RecyclerView orderView = itemView.findViewById(R.id.rv_orders);
 
                     @Override

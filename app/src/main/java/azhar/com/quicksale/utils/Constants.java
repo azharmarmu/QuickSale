@@ -51,6 +51,12 @@ public class Constants {
 
     public static final String UPDATE = "update";
 
+    /*Company Detailsw-Table*/
+    public static final String COMPANY_NAME = "name";
+    public static final String COMPANY_PHONE = "phone";
+    public static final String COMPANY_EMAIL = "email";
+
+
     /*SalesMan-Table*/
     public static final String SALES_MAN_NAME = "sales_man_name";
     public static final String SALES_MAN_PHONE = "sales_man_phone";
